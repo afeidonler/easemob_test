@@ -1,0 +1,50 @@
+<!--
+  This template loads for the 'tab.friend-detail' state (app.js)
+  'friend' is a $scope variable created in the FriendsCtrl controller (controllers.js)
+  The FriendsCtrl pulls data from the Friends service (service.js)
+  The Friends service returns an array of friend data
+-->
+<ion-view view-title="{{chat.name}}">
+  <ion-content class="padding">
+
+    <p>
+      {{chat}}
+    </p>
+    <p>
+      {{what}}
+    </p>
+    <div>
+      <label>个人:</label>
+      <input type="radio" ng-model="content.type" name="type" value="single">
+      <label>群:</label>
+      <input type="radio" ng-model="content.type" name="type" value="group">
+    </div>
+    <div>
+      <label>目标：</label>
+      <input type="text" ng-model="content.user">
+    </div>
+    <div>
+      <label>内容：</label>
+      <input type="text" ng-model="content.text">
+    </div>
+   <button ng-click="send()">发送</button>
+   <button ng-if="!recordStart"ng-click="captureAudio()">语音</button>
+   <button ng-if="recordStart" ng-click="stopCaptureAudio()">停止</button>
+   <button ng-if="!recordStart"ng-click="captureImage('camera')">拍照</button>
+   <button ng-if="!recordStart"ng-click="captureImage('photolibrary')">图片库</button>
+   <button ng-if="!recordStart"ng-click="captureImage('savedphotoalbum')">相册</button>
+   <button ng-click="getMessages()">获取纪录</button>
+   <button ng-if="msgId" ng-click="getMessages()">更多记录</button>
+   <button ng-if="msgId" ng-click="clearMessages()">清除</button>
+    <div ng-repeat="_chat in chats">
+      <p>{{_chat}}</p>
+      <p>来自:{{_chat.from}}</p>
+      <p>{{_chat.msgTime | date:'MM-dd HH:mm'}}</p>
+      <div ng-switch="_chat.type">
+        <p ng-switch-when="TXT">{{_chat.body.text}}</p>
+        <img ng-switch-when="IMAGE" ng-src="{{_chat.body.url}}" style="width:100px; height:100px;" />
+        <button ng-switch-when="VOICE" ng-click="toggleVoice(_chat.body)">播放({{_chat.body.size}}:{{_chat.body.position}}:{{_chat.body.isListened}})</button>
+      </div>
+    </div>
+  </ion-content>
+</ion-view>
