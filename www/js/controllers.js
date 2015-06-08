@@ -9,6 +9,15 @@ angular.module('starter.controllers', [])
   $scope.remove = function(chat) {
     Chats.remove(chat);
   }
+  $scope.getGroups= function () {
+   easemob.getGroups(function (argument) {
+      alert(argument);
+      console.log(argument);
+    },function (argument) {
+      alert(argument);
+      console.log(argument);
+    },[true])
+  } 
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
@@ -137,7 +146,7 @@ angular.module('starter.controllers', [])
 
   $scope.captureAudio = function () {
     $scope.recordStart = true;
-    easemob.recordstart(function (argument) {
+    easemob.recordStart(function (argument) {
       alert(argument);
       console.log(argument);
     },function (argument) {
@@ -147,7 +156,7 @@ angular.module('starter.controllers', [])
   }
   $scope.stopCaptureAudio = function () {
     $scope.recordStart = false;
-    easemob.recordend(function (argument) {
+    easemob.recordEnd(function (argument) {
       alert(argument);
       console.log(argument);
     },function (argument) {
@@ -158,6 +167,9 @@ angular.module('starter.controllers', [])
 
 
 function ImageOnSuccess(imageURI) {
+  if(imageURI instanceof Array) {
+    imageURI =imageURI[0];
+  }
   console.log(imageURI);
   easemob.chat(function (argument) {
     alert(argument);
@@ -181,11 +193,19 @@ function ImageOnFail(message) {
         break;
       case 'camera':
         source = Camera.PictureSourceType.CAMERA;
+        navigator.camera.getPicture(ImageOnSuccess, ImageOnFail, { quality: 50,
+          destinationType: Camera.DestinationType.FILE_URI,sourceType: source });
+        return;
         break;
         
     }
-    navigator.camera.getPicture(ImageOnSuccess, ImageOnFail, { quality: 50,
-    destinationType: Camera.DestinationType.FILE_URI,sourceType: source });
+    
+    window.imagePicker.getPictures(
+    ImageOnSuccess, ImageOnFail, {
+        maximumImagesCount: 1,
+        width: 800
+    }
+);
   }
 
 
