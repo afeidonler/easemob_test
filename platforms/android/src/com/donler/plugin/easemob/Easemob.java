@@ -826,10 +826,10 @@ public class Easemob extends CordovaPlugin {
         ImageMessageBody imageBody = (ImageMessageBody) message
             .getBody();
         if(message.direct.equals(EMMessage.Direct.SEND)){
-        	body.put("url", imageBody.getLocalUrl());
+          body.put("url", imageBody.getLocalUrl());
         }
         else {
-        	 body.put("url", imageBody.getThumbnailUrl());
+           body.put("url", imageBody.getThumbnailUrl());
         }
        
         break;
@@ -847,10 +847,10 @@ public class Easemob extends CordovaPlugin {
             .put("name", fileBody.getFileName())
             .put("size", fileBody.getFileSize());
         if(message.direct.equals(EMMessage.Direct.SEND)){
-        	body.put("url", fileBody.getLocalUrl());
+          body.put("url", fileBody.getLocalUrl());
         }
         else {
-        	 body.put("url", fileBody.getRemoteUrl());
+           body.put("url", fileBody.getRemoteUrl());
         }
        
         break;
@@ -962,7 +962,7 @@ public class Easemob extends CordovaPlugin {
       return uriStr.substring(7);
     }
     else {
-    	Uri contentUri = Uri.parse(uriStr);
+      Uri contentUri = Uri.parse(uriStr);
         Cursor cursor = cordova.getActivity().getContentResolver()
             .query(contentUri, null, null, null, null);
         if (cursor != null) {

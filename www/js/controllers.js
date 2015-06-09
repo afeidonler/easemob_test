@@ -18,6 +18,15 @@ angular.module('starter.controllers', [])
       console.log(argument);
     },[true])
   } 
+  $scope.logout = function (argument) {
+    easemob.logout(function (argument) {
+      alert(argument);
+      console.log(argument);
+    },function (argument) {
+      alert(argument);
+      console.log(argument);
+    })
+  }
 })
 
 .controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
