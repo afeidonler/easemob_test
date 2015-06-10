@@ -24,10 +24,6 @@
   <feature name="Media">
     <param name="android-package" value="org.apache.cordova.media.AudioHandler"/>
   </feature>
-
-  <feature name="Easemob">
-    <variable name="API_KEY" value="afei#test"/>
-  </feature>
   <platform name="android">
     <icon src="resources/android/icon/drawable-ldpi-icon.png" density="ldpi"/>
     <icon src="resources/android/icon/drawable-mdpi-icon.png" density="mdpi"/>

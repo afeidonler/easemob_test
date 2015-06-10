@@ -4,6 +4,16 @@
       <ion-item>
         <button ng-click="getGroups()">获取群聊</button>
         <button ng-click="logout()">退出</button>
+        <p>
+          {{groups}}
+        </p>
+      </ion-item>
+      <ion-item>
+      <button ng-click="getContacts()">获取好友</button>
+      
+        <p>
+          {{contacts}}
+        </p>
       </ion-item>
       <ion-item class="item-remove-animate item-avatar item-icon-right" ng-repeat="chat in chats" type="item-text-wrap" href="#/tab/chats/{{chat.id}}">
         <img ng-src="{{chat.face}}">

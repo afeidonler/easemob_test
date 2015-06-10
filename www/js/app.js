@@ -18,7 +18,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       // org.apache.cordova.statusbar required
       StatusBar.styleLightContent();
     }
-    alert(1);
     easemob.init();
     easemob.login(function (argument) {
       alert(2);
@@ -27,7 +26,6 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       alert(3);
       console.log(argument);
     },['afei','55yali'])
-
   });
 })
 

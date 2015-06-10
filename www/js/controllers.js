@@ -9,14 +9,27 @@ angular.module('starter.controllers', [])
   $scope.remove = function(chat) {
     Chats.remove(chat);
   }
-  $scope.getGroups= function () {
-   easemob.getGroups(function (argument) {
+  $scope.getGroups = function () {
+    easemob.getGroups(function (argument) {
       alert(argument);
       console.log(argument);
+      $scope.groups = argument;
+      $scope.$digest();
     },function (argument) {
       alert(argument);
       console.log(argument);
     },[true])
+  } 
+  $scope.getContacts = function () {
+    easemob.getContacts(function (argument) {
+      alert(argument);
+      console.log(argument);
+      $scope.contacts = argument;
+      $scope.$digest();
+    },function (argument) {
+      alert(argument);
+      console.log(argument);
+    })
   } 
   $scope.logout = function (argument) {
     easemob.logout(function (argument) {
@@ -37,15 +50,32 @@ angular.module('starter.controllers', [])
     user:'',
     type:''
   }
-  
+  $scope.resend= function () {
+   easemob.chat(function (chat) {
+      $scope.chat = chat;
+    $scope.$digest();
+    },function (chat) {
+      $scope.chat = chat;
+    $scope.$digest();
+    },[{
+      target:$scope.content.user,
+      resend:true,
+      msgId:$scope.content.text
+      }])
+  } 
   $scope.send= function () {
-   easemob.chat(function (argument) {
-      alert(argument);
-      console.log(argument);
-    },function (argument) {
-      alert(argument);
-      console.log(argument);
-    },[$scope.content.type,$scope.content.user,'txt',{'text':$scope.content.text}])
+   easemob.chat(function (chat) {
+      $scope.chat = chat;
+    $scope.$digest();
+    },function (chat) {
+      $scope.chat = chat;
+    $scope.$digest();
+    },[{
+      chatType:$scope.content.type,
+      target:$scope.content.user,
+      contentType:'txt',
+      content:{'text':$scope.content.text}
+      }])
   } 
   $scope.clearMessages = function () {
     $scope.chats =[]
@@ -151,17 +181,12 @@ angular.module('starter.controllers', [])
   
   easemob.onRecord = function (msg) {
     $scope.what = msg.what;
+    $scope.$digest();
   }
 
   $scope.captureAudio = function () {
     $scope.recordStart = true;
-    easemob.recordStart(function (argument) {
-      alert(argument);
-      console.log(argument);
-    },function (argument) {
-      alert(argument);
-      console.log(argument);
-    },[$scope.content.user])
+    easemob.recordStart([$scope.content.user])
   }
   $scope.stopCaptureAudio = function () {
     $scope.recordStart = false;

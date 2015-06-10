@@ -8,12 +8,6 @@
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-            <intent-filter>
-                <data android:scheme="donlerapp" />
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-            </intent-filter>
         </activity>
         <receiver android:name="com.easemob.chat.StartServiceReceiver">
             <intent-filter android:priority="1000">
@@ -26,7 +20,7 @@
         <service android:name="com.easemob.chat.EMChatService" />
         <activity android:label="@string/multi_app_name" android:name="com.synconset.MultiImageChooserActivity" android:theme="@android:style/Theme.Holo.Light" />
     </application>
-    <uses-sdk android:minSdkVersion="11" android:targetSdkVersion="19" />
+    <uses-sdk android:minSdkVersion="10" android:targetSdkVersion="19" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAMERA" />

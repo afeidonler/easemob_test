@@ -11,9 +11,6 @@
     <feature name="ImagePicker">
         <param name="android-package" value="com.synconset.ImagePicker" />
     </feature>
-    <feature name="LaunchMyApp">
-        <param name="android-package" value="nl.xservices.plugins.LaunchMyApp" />
-    </feature>
     <feature name="Camera">
         <param name="android-package" value="org.apache.cordova.camera.CameraLauncher" />
     </feature>
@@ -60,11 +57,4 @@
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
-    <plugin name="LaunchMyApp" value="nl.xservices.plugins.LaunchMyApp" />
-    <gap:config-file parent="/manifest/application" platform="android">
-        <activity android:launchMode="singleTask" />
-    </gap:config-file>
-    <gap:plugin name="nl.x-services.plugins.launchmyapp">
-        <param name="URL_SCHEME" value="mycoolapp" />
-    </gap:plugin>
 </widget>

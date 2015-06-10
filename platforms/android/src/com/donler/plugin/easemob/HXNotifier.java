@@ -31,14 +31,15 @@ import android.support.v4.app.NotificationCompat;
 
 // import com.easemob.applib.controller.HXSDKHelper;
 import com.easemob.chat.EMChatManager;
+import com.easemob.chat.EMChatOptions;
 import com.easemob.chat.EMMessage;
 import com.easemob.util.EMLog;
 import com.easemob.util.EasyUtils;
 
 /**
- * æ–°æ¶ˆæ¯æé†’class
- * 2.1.8æŠŠæ–°æ¶ˆæ¯æç¤ºç›¸å…³çš„apiç§»é™¤å‡ºsdkï¼Œæ–¹ä¾¿å¼€å‘è€…è‡ªç”±ä¿®æ”¹
- * å¼€å‘è€…ä¹Ÿå¯ä»¥ç»§æ‰¿æ­¤ç±»å®ç°ç›¸å…³çš„æ¥å£
+ * ĞÂÏûÏ¢ÌáĞÑclass
+ * 2.1.8°ÑĞÂÏûÏ¢ÌáÊ¾Ïà¹ØµÄapiÒÆ³ı³ösdk£¬·½±ã¿ª·¢Õß×ÔÓÉĞŞ¸Ä
+ * ¿ª·¢ÕßÒ²¿ÉÒÔ¼Ì³Ğ´ËÀàÊµÏÖÏà¹ØµÄ½Ó¿Ú
  * 
  * this class is subject to be inherited and implement the relative APIs
  */
@@ -49,8 +50,8 @@ public class HXNotifier {
     protected final static String[] msg_eng = { "sent a message", "sent a picture", "sent a voice",
                                                 "sent location message", "sent a video", "sent a file", "%1 contacts sent %2 messages"
                                               };
-    protected final static String[] msg_ch = { "å‘æ¥ä¸€æ¡æ¶ˆæ¯", "å‘æ¥ä¸€å¼ å›¾ç‰‡", "å‘æ¥ä¸€æ®µè¯­éŸ³", "å‘æ¥ä½ç½®ä¿¡æ¯", "å‘æ¥ä¸€ä¸ªè§†é¢‘", "å‘æ¥ä¸€ä¸ªæ–‡ä»¶",
-                                               "%1ä¸ªè”ç³»äººå‘æ¥%2æ¡æ¶ˆæ¯"
+    protected final static String[] msg_ch = { "·¢À´Ò»ÌõÏûÏ¢", "·¢À´Ò»ÕÅÍ¼Æ¬", "·¢À´Ò»¶ÎÓïÒô", "·¢À´Î»ÖÃĞÅÏ¢", "·¢À´Ò»¸öÊÓÆµ", "·¢À´Ò»¸öÎÄ¼ş",
+                                               "%1¸öÁªÏµÈË·¢À´%2ÌõÏûÏ¢"
                                              };
 
     protected static int notifyID = 0525; // start notification id
@@ -73,7 +74,7 @@ public class HXNotifier {
     }
     
     /**
-     * å¼€å‘è€…å¯ä»¥é‡è½½æ­¤å‡½æ•°
+     * ¿ª·¢Õß¿ÉÒÔÖØÔØ´Ëº¯Êı
      * this function can be override
      * @param context
      * @return
@@ -96,7 +97,7 @@ public class HXNotifier {
     }
     
     /**
-     * å¼€å‘è€…å¯ä»¥é‡è½½æ­¤å‡½æ•°
+     * ¿ª·¢Õß¿ÉÒÔÖØÔØ´Ëº¯Êı
      * this function can be override
      */
     public void reset(){
@@ -115,9 +116,9 @@ public class HXNotifier {
     }
 
     /**
-     * å¤„ç†æ–°æ”¶åˆ°çš„æ¶ˆæ¯ï¼Œç„¶åå‘é€é€šçŸ¥
+     * ´¦ÀíĞÂÊÕµ½µÄÏûÏ¢£¬È»ºó·¢ËÍÍ¨Öª
      * 
-     * å¼€å‘è€…å¯ä»¥é‡è½½æ­¤å‡½æ•°
+     * ¿ª·¢Õß¿ÉÒÔÖØÔØ´Ëº¯Êı
      * this function can be override
      * 
      * @param message
@@ -126,11 +127,16 @@ public class HXNotifier {
         if(EMChatManager.getInstance().isSlientMessage(message)){
             return;
         }
-        
-        // åˆ¤æ–­appæ˜¯å¦åœ¨åå°
+        EMChatOptions chatOptions = EMChatManager.getInstance().getChatOptions();
+        // ÅĞ¶ÏappÊÇ·ñÔÚºóÌ¨
         if (!EasyUtils.isAppRunningForeground(appContext)) {
             EMLog.d(TAG, "app is running in backgroud");
-            sendNotification(message, false);
+            if(chatOptions.isShowNotificationInBackgroud()){
+            	sendNotification(message, false);
+            }
+            else {
+            	return;
+            }
         } else {
             sendNotification(message, true);
 
@@ -143,10 +149,15 @@ public class HXNotifier {
         if(EMChatManager.getInstance().isSlientMessage(messages.get(messages.size()-1))){
             return;
         }
-        // åˆ¤æ–­appæ˜¯å¦åœ¨åå°
+        EMChatOptions chatOptions = EMChatManager.getInstance().getChatOptions();
         if (!EasyUtils.isAppRunningForeground(appContext)) {
             EMLog.d(TAG, "app is running in backgroud");
-            sendNotification(messages, false);
+            if(chatOptions.isShowNotificationInBackgroud()){
+            	sendNotification(messages, false);
+            }
+            else {
+            	return;
+            }
         } else {
             sendNotification(messages, true);
         }
@@ -154,7 +165,7 @@ public class HXNotifier {
     }
 
     /**
-     * å‘é€é€šçŸ¥æ æç¤º
+     * ·¢ËÍÍ¨ÖªÀ¸ÌáÊ¾
      * This can be override by subclass to provide customer implementation
      * @param messages
      * @param isForeground
@@ -174,7 +185,7 @@ public class HXNotifier {
     }
     
     /**
-     * å‘é€é€šçŸ¥æ æç¤º
+     * ·¢ËÍÍ¨ÖªÀ¸ÌáÊ¾
      * This can be override by subclass to provide customer implementation
      * @param message
      */
@@ -213,12 +224,12 @@ public class HXNotifier {
                 String customNotifyText = notificationInfoProvider.getDisplayedText(message);
                 String customCotentTitle = notificationInfoProvider.getTitle(message);
                 if (customNotifyText != null){
-                    // è®¾ç½®è‡ªå®šä¹‰çš„çŠ¶æ€æ æç¤ºå†…å®¹
+                    // ÉèÖÃ×Ô¶¨ÒåµÄ×´Ì¬À¸ÌáÊ¾ÄÚÈİ
                     notifyText = customNotifyText;
                 }
                     
                 if (customCotentTitle != null){
-                    // è®¾ç½®è‡ªå®šä¹‰çš„é€šçŸ¥æ æ ‡é¢˜
+                    // ÉèÖÃ×Ô¶¨ÒåµÄÍ¨ÖªÀ¸±êÌâ
                     contentTitle = customCotentTitle;
                 }   
             }
@@ -231,7 +242,7 @@ public class HXNotifier {
 
             Intent msgIntent = appContext.getPackageManager().getLaunchIntentForPackage(packageName);
             if (notificationInfoProvider != null) {
-                // è®¾ç½®è‡ªå®šä¹‰çš„notificationç‚¹å‡»è·³è½¬intent
+                // ÉèÖÃ×Ô¶¨ÒåµÄnotificationµã»÷Ìø×ªintent
                 msgIntent = notificationInfoProvider.getLaunchIntent(message);
             }
 
@@ -282,7 +293,7 @@ public class HXNotifier {
     }
 
     /**
-     * æ‰‹æœºéœ‡åŠ¨å’Œå£°éŸ³æç¤º
+     * ÊÖ»úÕğ¶¯ºÍÉùÒôÌáÊ¾
      */
     public void viberateAndPlayTone(EMMessage message) {
         if(message != null){
@@ -290,12 +301,10 @@ public class HXNotifier {
                 return;
             } 
         }
-        
-        // HXSDKModel model = HXSDKHelper.getInstance().getModel();
-        // if(!model.getSettingMsgNotification()){
-        //     return;
-        // }
-        
+        EMChatOptions chatOptions = EMChatManager.getInstance().getChatOptions();
+         if(!chatOptions.getNotifyBySoundAndVibrate()){
+             return;
+         }
         if (System.currentTimeMillis() - lastNotifiyTime < 1000) {
             // received new messages within 2 seconds, skip play ringtone
             return;
@@ -304,18 +313,18 @@ public class HXNotifier {
         try {
             lastNotifiyTime = System.currentTimeMillis();
             
-            // åˆ¤æ–­æ˜¯å¦å¤„äºé™éŸ³æ¨¡å¼
+            // ÅĞ¶ÏÊÇ·ñ´¦ÓÚ¾²ÒôÄ£Ê½
             if (audioManager.getRingerMode() == AudioManager.RINGER_MODE_SILENT) {
                 EMLog.e(TAG, "in slient mode now");
                 return;
             }
             
-            // if(model.getSettingMsgVibrate()){
+             if(chatOptions.getNoticedByVibrate()){
                 long[] pattern = new long[] { 0, 180, 80, 120 };
                 vibrator.vibrate(pattern, -1);
-            // }
+             }
 
-            // if(model.getSettingMsgSound()){
+             if(chatOptions.getNoticedBySound()){
                 if (ringtone == null) {
                     Uri notificationUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
@@ -349,7 +358,7 @@ public class HXNotifier {
                         ctlThread.run();
                     }
                 }
-            // }
+             }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -357,7 +366,7 @@ public class HXNotifier {
 
 
     /**
-     * è®¾ç½®NotificationInfoProvider
+     * ÉèÖÃNotificationInfoProvider
      * 
      * @param provider
      */
@@ -367,49 +376,49 @@ public class HXNotifier {
 
     public interface HXNotificationInfoProvider {
         /**
-         * è®¾ç½®å‘é€notificationæ—¶çŠ¶æ€æ æç¤ºæ–°æ¶ˆæ¯çš„å†…å®¹(æ¯”å¦‚Xxxå‘æ¥äº†ä¸€æ¡å›¾ç‰‡æ¶ˆæ¯)
+         * ÉèÖÃ·¢ËÍnotificationÊ±×´Ì¬À¸ÌáÊ¾ĞÂÏûÏ¢µÄÄÚÈİ(±ÈÈçXxx·¢À´ÁËÒ»ÌõÍ¼Æ¬ÏûÏ¢)
          * 
          * @param message
-         *            æ¥æ”¶åˆ°çš„æ¶ˆæ¯
-         * @return nullä¸ºä½¿ç”¨é»˜è®¤
+         *            ½ÓÊÕµ½µÄÏûÏ¢
+         * @return nullÎªÊ¹ÓÃÄ¬ÈÏ
          */
         String getDisplayedText(EMMessage message);
 
         /**
-         * è®¾ç½®notificationæŒç»­æ˜¾ç¤ºçš„æ–°æ¶ˆæ¯æç¤º(æ¯”å¦‚2ä¸ªè”ç³»äººå‘æ¥äº†5æ¡æ¶ˆæ¯)
+         * ÉèÖÃnotification³ÖĞøÏÔÊ¾µÄĞÂÏûÏ¢ÌáÊ¾(±ÈÈç2¸öÁªÏµÈË·¢À´ÁË5ÌõÏûÏ¢)
          * 
          * @param message
-         *            æ¥æ”¶åˆ°çš„æ¶ˆæ¯
+         *            ½ÓÊÕµ½µÄÏûÏ¢
          * @param fromUsersNum
-         *            å‘é€äººçš„æ•°é‡
+         *            ·¢ËÍÈËµÄÊıÁ¿
          * @param messageNum
-         *            æ¶ˆæ¯æ•°é‡
-         * @return nullä¸ºä½¿ç”¨é»˜è®¤
+         *            ÏûÏ¢ÊıÁ¿
+         * @return nullÎªÊ¹ÓÃÄ¬ÈÏ
          */
         String getLatestText(EMMessage message, int fromUsersNum, int messageNum);
 
         /**
-         * è®¾ç½®notificationæ ‡é¢˜
+         * ÉèÖÃnotification±êÌâ
          * 
          * @param message
-         * @return nullä¸ºä½¿ç”¨é»˜è®¤
+         * @return nullÎªÊ¹ÓÃÄ¬ÈÏ
          */
         String getTitle(EMMessage message);
 
         /**
-         * è®¾ç½®å°å›¾æ ‡
+         * ÉèÖÃĞ¡Í¼±ê
          * 
          * @param message
-         * @return 0ä½¿ç”¨é»˜è®¤å›¾æ ‡
+         * @return 0Ê¹ÓÃÄ¬ÈÏÍ¼±ê
          */
         int getSmallIcon(EMMessage message);
 
         /**
-         * è®¾ç½®notificationç‚¹å‡»æ—¶çš„è·³è½¬intent
+         * ÉèÖÃnotificationµã»÷Ê±µÄÌø×ªintent
          * 
          * @param message
-         *            æ˜¾ç¤ºåœ¨notificationä¸Šæœ€è¿‘çš„ä¸€æ¡æ¶ˆæ¯
-         * @return nullä¸ºä½¿ç”¨é»˜è®¤
+         *            ÏÔÊ¾ÔÚnotificationÉÏ×î½üµÄÒ»ÌõÏûÏ¢
+         * @return nullÎªÊ¹ÓÃÄ¬ÈÏ
          */
         Intent getLaunchIntent(EMMessage message);
     }

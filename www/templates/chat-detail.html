@@ -36,6 +36,7 @@
    <button ng-click="getMessages()">获取纪录</button>
    <button ng-if="msgId" ng-click="getMessages()">更多记录</button>
    <button ng-if="msgId" ng-click="clearMessages()">清除</button>
+   <button ng-click="resend()">重新发送</button>
     <div ng-repeat="_chat in chats">
       <p>{{_chat}}</p>
       <p>来自:{{_chat.from}}</p>

@@ -18,9 +18,9 @@
  */
 package com.donler.plugin.easemob;
 
-//å§ã‚…ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ç‘•ï¿½ï¿½ï¿½ï¿½ XMLï¿½ï¿½ï¿½ï¿½ï¿½ãˆ¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½æ¶“ï¿½ï¿½ï¿½ï¿½
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,7 +38,8 @@ import com.easemob.EMEventListener;
 import com.easemob.EMNotifierEvent;
 import com.easemob.EMValueCallBack;
 import com.easemob.chat.EMChatManager;
-//import com.easemob.chat.EMChatOptions;
+import com.easemob.chat.EMContactManager;
+import com.easemob.chat.EMChatOptions;
 import com.easemob.chat.EMConversation;
 import com.easemob.chat.EMGroup;
 import com.easemob.chat.EMGroupManager;
@@ -82,13 +83,33 @@ public class Easemob extends CordovaPlugin {
   private static Boolean deviceready = false;
 
   enum actionType {
-    LOGIN, LOGOUT, CHAT, RECORDSTART, RECORDEND, RECORDCANCEL, GETMESSAGES, PAUSE, RESUME, GETUNREADMSGCOUNT, RESETUNRADMSGCOUNT, GETMSGCOUNT, DELETECONVERSATIONS, DELETECONVERSATION, GETGROUPS, GETGROUP
+	INIT,
+    LOGIN,
+    LOGOUT,
+    CHAT,
+    RECORDSTART,
+    RECORDEND,
+    RECORDCANCEL,
+    GETMESSAGES,
+    PAUSE,
+    RESUME,
+    GETUNREADMSGCOUNT,
+    RESETUNRADMSGCOUNT,
+    GETMSGCOUNT,
+    DELETECONVERSATIONS,
+    DELETECONVERSATION,
+    GETGROUPS,
+    GETGROUP,
+    GETCONTACTS,
+    ADDCONTACT,
+    DELETECONTACT,
+    SETTING
   }
 
   @SuppressLint("HandlerLeak") private Handler micImageHandler = new Handler() {
     @Override
     public void handleMessage(android.os.Message msg) {
-      // åˆ‡æ¢msgåˆ‡æ¢å›¾ç‰‡
+      //Â¼Òô¹ı³ÌÖĞµÄ´¦Àíº¯Êı£¬what´ú±íÁËÒôÁ¿´óĞ¡
       Log.d("Easemob", msg.toString());
       fireEvent("Record", "{what:" + msg.what + "}");
       // micImage.setImageDrawable(micImages[msg.what]);
@@ -108,28 +129,6 @@ public class Easemob extends CordovaPlugin {
     super.initialize(cordova, webView);
     Easemob.webView = super.webView;
     mainActivity = cordova.getActivity();
-    try {
-      int pid = android.os.Process.myPid();
-      String processAppName = getAppName(pid);
-      // é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·appé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·è¿œé”Ÿæ•™ç¢‰æ‹·serviceé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·application:onCreateé”Ÿç»“è¢«é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·2é”Ÿæ–¤æ‹·
-      // ä¸ºé”Ÿå‰¿å‡¤æ‹·æ­¢é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·SDKé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·å§‹é”Ÿæ–¤æ‹·2é”Ÿè½¿ï½æ‹·é”Ÿæ¥è¾¾æ‹·é”Ÿå«æ–­ä¼šä¿è¯SDKé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·å§‹é”Ÿæ–¤æ‹·1é”Ÿæ–¤æ‹·
-      // é»˜é”Ÿè¾ƒç¢‰æ‹·appé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿçš†å¸®æ‹·é”Ÿæ–¤æ‹·ä¸ºé»˜é”Ÿè¾ƒç¢‰æ‹·process
-      // nameé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿå«ï½æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿä»‹åˆ°é”Ÿæ–¤æ‹·process nameé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·appé”Ÿæ–¤æ‹·process
-      // nameé”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·
-      if (processAppName == null
-          || !processAppName.equalsIgnoreCase(cordova.getActivity()
-              .getPackageName())) {
-        Log.e(TAG, "enter the service process!");
-        // "com.easemob.chatuidemo"ä¸ºdemoé”Ÿä¾¥å¸®æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·é”Ÿçš†ç¡·æ‹·é”Ÿæ–¤æ‹·ç›®é”Ÿæ–¤æ‹·è¦é”Ÿä¾¥ç­¹æ‹·é”Ÿçš†ç¡·æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·
-
-        // é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·application::onCreate é”Ÿè§’æ†‹æ‹·service é”Ÿæ–¤æ‹·é”ŸçŸ«çš„ï½æ‹·ç›´é”Ÿæ¥å‡¤æ‹·é”Ÿæ–¤æ‹·
-        return;
-      }
-      EMChat.getInstance().init(mainActivity);
-      EMChat.getInstance().setDebugMode(true);
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
   }
 
   /**
@@ -145,13 +144,14 @@ public class Easemob extends CordovaPlugin {
    */
   public boolean execute(String action, JSONArray args,
       CallbackContext callbackContext) throws JSONException {
-    // æ©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½args nçè¾¨ï¿½ï¿½JS cordova.exec()ï¿½ï¿½ï¿½ç»—ï¿½æµœï¿½æ¶“ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-    // æµ ï¿½JSONï¿½ï¿½ç…ï¿½ï¿½å¯°ï¿½ï¿½ï¿½å¸®ï¿½ï¿½æ¶“ï¿½ç€¹ï¿½ç‘•ï¿½ç€¹ï¿½æ¤¤å“„ï¿½ï¿½
 
     Easemob.emchatCallbackContext = callbackContext;
     String target;
     EMConversation conversation;
     switch (actionType.valueOf(action.toUpperCase())) {
+    case INIT:
+        dealInit();
+        break;
     case LOGIN:
       dealLogin(args);
       break;
@@ -168,26 +168,32 @@ public class Easemob extends CordovaPlugin {
           .getApplicationContext());
       break;
     case RECORDEND:
-      String chatType = args.getString(0);
-      target = args.getString(1);
-      // è·å–åˆ°ä¸èŠå¤©äººçš„ä¼šè¯å¯¹è±¡ã€‚å‚æ•°usernameä¸ºèŠå¤©äººçš„useridæˆ–è€…groupidï¼Œåæ–‡ä¸­çš„usernameçš†æ˜¯å¦‚æ­¤
-      conversation = EMChatManager.getInstance().getConversation(target);
-      int length = voiceRecorder.stopRecoding();
-      if (length > 0) {
-        sendVoice(conversation, chatType, target,
-            voiceRecorder.getVoiceFilePath(),
-            voiceRecorder.getVoiceFileName(target),
-            Integer.toString(length), false);
-      } else {
-        emchatCallbackContext.error("å½•éŸ³æ—¶é—´è¿‡çŸ­");
+      if(voiceRecorder==null){
+    	  emchatCallbackContext.error("µ±Ç°Ã»ÓĞÂ¼Òô");
       }
+      else {
+    	  String chatType = args.getString(0);
+          target = args.getString(1);
+          // »ñÈ¡µ½ÓëÁÄÌìÈËµÄ»á»°¶ÔÏó¡£²ÎÊıusernameÎªÁÄÌìÈËµÄuserid»òÕßgroupid£¬ºóÎÄÖĞµÄusername½ÔÊÇÈç´Ë
+          conversation = EMChatManager.getInstance().getConversation(target);
+          int length = voiceRecorder.stopRecoding();
+          if (length > 0) {
+            sendVoice(conversation, chatType, target,
+                voiceRecorder.getVoiceFilePath(),
+                voiceRecorder.getVoiceFileName(target),
+                Integer.toString(length), false);
+          } else {
+            emchatCallbackContext.error("Â¼ÒôÊ±¼ä¹ı¶Ì");
+          }
+      }
+      
       break;
     case RECORDCANCEL:
       if (voiceRecorder != null) {
         voiceRecorder.discardRecording();
-        emchatCallbackContext.success("å½•éŸ³å–æ¶ˆ");
+        emchatCallbackContext.success("Â¼ÒôÈ¡Ïû");
       } else {
-        emchatCallbackContext.error("å½“å‰æ²¡æœ‰å½•éŸ³");
+        emchatCallbackContext.error("µ±Ç°Ã»ÓĞÂ¼Òô");
       }
 
       break;
@@ -197,7 +203,7 @@ public class Easemob extends CordovaPlugin {
     case PAUSE:
       isInBackground = true;
       try {
-        // åœæ­¢å½•éŸ³
+        // Í£Ö¹Â¼Òô
         if (voiceRecorder.isRecording()) {
           voiceRecorder.discardRecording();
         }
@@ -238,14 +244,14 @@ public class Easemob extends CordovaPlugin {
     case DELETECONVERSATIONS:
       target = args.getString(0);
       EMChatManager.getInstance().clearConversation(target);
-      // åˆ é™¤å’ŒæŸä¸ªuserçš„æ•´ä¸ªçš„èŠå¤©è®°å½•(åŒ…æ‹¬æœ¬åœ°)
+      // É¾³ıºÍÄ³¸öuserµÄÕû¸öµÄÁÄÌì¼ÇÂ¼(°üÀ¨±¾µØ)
       // EMChatManager.getInstance().deleteConversation(target);
       emchatCallbackContext.success();
       break;
     case DELETECONVERSATION:
       target = args.getString(0);
       String msgId = args.getString(0);
-      // åˆ é™¤å½“å‰ä¼šè¯çš„æŸæ¡èŠå¤©è®°å½•
+      // É¾³ıµ±Ç°»á»°µÄÄ³ÌõÁÄÌì¼ÇÂ¼
       conversation = EMChatManager.getInstance().getConversation(target);
       conversation.removeMessage(msgId);
       emchatCallbackContext.success();
@@ -257,7 +263,7 @@ public class Easemob extends CordovaPlugin {
             new EMValueCallBack<List<EMGroup>>() {
               @Override
               public void onSuccess(List<EMGroup> value) {
-                emchatCallbackContext.success(groupsToJson(value).toString());
+                emchatCallbackContext.success(groupsToJson(value));
               }
 
               @Override
@@ -266,10 +272,10 @@ public class Easemob extends CordovaPlugin {
               }
             });
       } else {
-        // ä»æœ¬åœ°åŠ è½½ç¾¤èŠåˆ—è¡¨
+        // ´Ó±¾µØ¼ÓÔØÈºÁÄÁĞ±í
         List<EMGroup> grouplist = EMGroupManager.getInstance()
             .getAllGroups();
-        emchatCallbackContext.success(groupsToJson(grouplist).toString());
+        emchatCallbackContext.success(groupsToJson(grouplist));
       }
 
       break;
@@ -277,29 +283,71 @@ public class Easemob extends CordovaPlugin {
       target = args.getString(0);
       Boolean serverFlag1 = args.getBoolean(1);
       if (serverFlag1) {
-        // æ ¹æ®ç¾¤èŠIDä»æœåŠ¡å™¨è·å–ç¾¤èŠä¿¡æ¯
+        // ¸ù¾İÈºÁÄID´Ó·şÎñÆ÷»ñÈ¡ÈºÁÄĞÅÏ¢
         EMGroup group;
         try {
           group = EMGroupManager.getInstance().getGroupFromServer(
               target);
           emchatCallbackContext.success(groupToJson(group));
-          // ä¿å­˜è·å–ä¸‹æ¥çš„ç¾¤èŠä¿¡æ¯
+          // ±£´æ»ñÈ¡ÏÂÀ´µÄÈºÁÄĞÅÏ¢
           EMGroupManager.getInstance()
               .createOrUpdateLocalGroup(group);
         } catch (EaseMobException e) {
           e.printStackTrace();
-          emchatCallbackContext.success("è·å–ç¾¤èŠä¿¡æ¯å¤±è´¥");
+          emchatCallbackContext.success("»ñÈ¡ÈºÁÄĞÅÏ¢Ê§°Ü");
         }
 
       } else {
-        // æ ¹æ®ç¾¤èŠIDä»æœ¬åœ°è·å–ç¾¤èŠä¿¡æ¯
+        // ¸ù¾İÈºÁÄID´Ó±¾µØ»ñÈ¡ÈºÁÄĞÅÏ¢
         EMGroup group = EMGroupManager.getInstance().getGroup(target);
-        // group.getMembers();//è·å–ç¾¤æˆå‘˜
-        // group.getOwner();//è·å–ç¾¤ä¸»
+        // group.getMembers();//»ñÈ¡Èº³ÉÔ±
+        // group.getOwner();//»ñÈ¡ÈºÖ÷
         emchatCallbackContext.success(group.toString());
       }
 
       break;
+    case GETCONTACTS:
+      try {
+        List<String> usernames = EMContactManager.getInstance().getContactUserNames();//ĞèÒì²½Ö´ĞĞ
+        JSONArray mJSONArray = new JSONArray(usernames);
+        emchatCallbackContext.success(mJSONArray);
+      }
+      catch (EaseMobException e){
+        emchatCallbackContext.error(e.toString());
+      }
+      break;
+    case ADDCONTACT:
+      try {
+        target = args.getString(0);
+        String reason;
+        if(args.length()>1) {
+          reason = args.getString(1);
+        }
+        else {
+          reason = "";
+        }
+        //²ÎÊıÎªÒªÌí¼ÓµÄºÃÓÑµÄusernameºÍÌí¼ÓÀíÓÉ
+        EMContactManager.getInstance().addContact(target, reason);//ĞèÒì²½´¦Àí
+        emchatCallbackContext.success("³É¹¦");
+      }
+      catch (EaseMobException e){
+        emchatCallbackContext.error(e.toString());
+      }
+      break;
+    case DELETECONTACT:
+      try {
+        target = args.getString(0);
+        EMContactManager.getInstance().deleteContact(target);//ĞèÒì²½´¦Àí
+        emchatCallbackContext.success("³É¹¦");
+      }
+      catch (EaseMobException e){
+        emchatCallbackContext.error(e.toString());
+      }
+      break;
+    case SETTING:
+    	dealSetting(args);
+      break;
+      
     default:
       return false;
     }
@@ -308,7 +356,7 @@ public class Easemob extends CordovaPlugin {
   }
 
   /**
-   * å‘é€æ–‡æœ¬æ¶ˆæ¯
+   * ·¢ËÍÎÄ±¾ÏûÏ¢
    * 
    * @param content
    *            message content
@@ -319,7 +367,7 @@ public class Easemob extends CordovaPlugin {
 
   // if (content.length() > 0) {
   // EMMessage message = EMMessage.createSendMessage(EMMessage.Type.TXT);
-  // // å¦‚æœæ˜¯ç¾¤èŠï¼Œè®¾ç½®chattype,é»˜è®¤æ˜¯å•èŠ
+  // // Èç¹ûÊÇÈºÁÄ£¬ÉèÖÃchattype,Ä¬ÈÏÊÇµ¥ÁÄ
   // if (chatType == CHATTYPE_GROUP){
   // message.setChatType(ChatType.GroupChat);
   // }else if(chatType == CHATTYPE_CHATROOM){
@@ -327,13 +375,13 @@ public class Easemob extends CordovaPlugin {
   // }
 
   // TextMessageBody txtBody = new TextMessageBody(content);
-  // // è®¾ç½®æ¶ˆæ¯body
+  // // ÉèÖÃÏûÏ¢body
   // message.addBody(txtBody);
-  // // è®¾ç½®è¦å‘ç»™è°,ç”¨æˆ·usernameæˆ–è€…ç¾¤èŠgroupid
+  // // ÉèÖÃÒª·¢¸øË­,ÓÃ»§username»òÕßÈºÁÄgroupid
   // message.setReceipt(toChatUsername);
-  // // æŠŠmessgageåŠ åˆ°conversationä¸­
+  // // °Ñmessgage¼Óµ½conversationÖĞ
   // conversation.addMessage(message);
-  // // é€šçŸ¥adapteræœ‰æ¶ˆæ¯å˜åŠ¨ï¼Œadapterä¼šæ ¹æ®åŠ å…¥çš„è¿™æ¡messageæ˜¾ç¤ºæ¶ˆæ¯å’Œè°ƒç”¨sdkçš„å‘é€æ–¹æ³•
+  // // Í¨ÖªadapterÓĞÏûÏ¢±ä¶¯£¬adapter»á¸ù¾İ¼ÓÈëµÄÕâÌõmessageÏÔÊ¾ÏûÏ¢ºÍµ÷ÓÃsdkµÄ·¢ËÍ·½·¨
   // adapter.refreshSelectLast();
   // mEditTextContent.setText("");
 
@@ -342,7 +390,7 @@ public class Easemob extends CordovaPlugin {
   // }
   // }
   /**
-   * å‘é€è¯­éŸ³
+   * ·¢ËÍÓïÒô
    * 
    * @param filePath
    * @param fileName
@@ -358,7 +406,7 @@ public class Easemob extends CordovaPlugin {
     try {
       final EMMessage message = EMMessage
           .createSendMessage(EMMessage.Type.VOICE);
-      // å¦‚æœæ˜¯ç¾¤èŠï¼Œè®¾ç½®chattype,é»˜è®¤æ˜¯å•èŠ
+      // Èç¹ûÊÇÈºÁÄ£¬ÉèÖÃchattype,Ä¬ÈÏÊÇµ¥ÁÄ
       if (chatType == "group") {
         message.setChatType(ChatType.GroupChat);
       } else if (chatType == "chatroom") {
@@ -371,12 +419,12 @@ public class Easemob extends CordovaPlugin {
       message.addBody(body);
 
       conversation.addMessage(message);
-      // å‘é€æ¶ˆæ¯
+      // ·¢ËÍÏûÏ¢
       EMChatManager.getInstance().sendMessage(message, new EMCallBack() {
         @Override
         public void onSuccess() {
-          Log.d("main", "å‘é€æˆåŠŸ");
-          emchatCallbackContext.success("å‘é€æˆåŠŸ");
+          Log.d("main", "·¢ËÍ³É¹¦");
+          emchatCallbackContext.success(messageToJson(message));
         }
 
         @Override
@@ -385,9 +433,9 @@ public class Easemob extends CordovaPlugin {
         }
 
         @Override
-        public void onError(int code, String message) {
-          Log.d("main", "å‘é€å¤±è´¥ï¼");
-          emchatCallbackContext.error("å‘é€å¤±è´¥ï¼");
+        public void onError(int code, String errorMessage) {
+          Log.d("main", "·¢ËÍÊ§°Ü£¡");
+          emchatCallbackContext.error(messageToJson(message));
         }
       });
     } catch (Exception e) {
@@ -396,7 +444,7 @@ public class Easemob extends CordovaPlugin {
   }
 
   /**
-   * å‘é€å›¾ç‰‡
+   * ·¢ËÍÍ¼Æ¬
    * 
    * @param filePath
    */
@@ -405,7 +453,7 @@ public class Easemob extends CordovaPlugin {
   // // create and add image message in view
   // final EMMessage message =
   // EMMessage.createSendMessage(EMMessage.Type.IMAGE);
-  // // å¦‚æœæ˜¯ç¾¤èŠï¼Œè®¾ç½®chattype,é»˜è®¤æ˜¯å•èŠ
+  // // Èç¹ûÊÇÈºÁÄ£¬ÉèÖÃchattype,Ä¬ÈÏÊÇµ¥ÁÄ
   // if (chatType == CHATTYPE_GROUP){
   // message.setChatType(ChatType.GroupChat);
   // }else if(chatType == CHATTYPE_CHATROOM){
@@ -414,7 +462,7 @@ public class Easemob extends CordovaPlugin {
 
   // message.setReceipt(to);
   // ImageMessageBody body = new ImageMessageBody(new File(filePath));
-  // // é»˜è®¤è¶…è¿‡100kçš„å›¾ç‰‡ä¼šå‹ç¼©åå‘ç»™å¯¹æ–¹ï¼Œå¯ä»¥è®¾ç½®æˆå‘é€åŸå›¾
+  // // Ä¬ÈÏ³¬¹ı100kµÄÍ¼Æ¬»áÑ¹Ëõºó·¢¸ø¶Ô·½£¬¿ÉÒÔÉèÖÃ³É·¢ËÍÔ­Í¼
   // // body.setSendOriginalImage(true);
   // message.addBody(body);
   // conversation.addMessage(message);
@@ -426,7 +474,7 @@ public class Easemob extends CordovaPlugin {
   // }
 
   /**
-   * å‘é€è§†é¢‘æ¶ˆæ¯
+   * ·¢ËÍÊÓÆµÏûÏ¢
    */
   // private void sendVideo(final String filePath, final String thumbPath,
   // final int length) {
@@ -436,7 +484,7 @@ public class Easemob extends CordovaPlugin {
   // }
   // try {
   // EMMessage message = EMMessage.createSendMessage(EMMessage.Type.VIDEO);
-  // // å¦‚æœæ˜¯ç¾¤èŠï¼Œè®¾ç½®chattype,é»˜è®¤æ˜¯å•èŠ
+  // // Èç¹ûÊÇÈºÁÄ£¬ÉèÖÃchattype,Ä¬ÈÏÊÇµ¥ÁÄ
   // if (chatType == CHATTYPE_GROUP){
   // message.setChatType(ChatType.GroupChat);
   // }else if(chatType == CHATTYPE_CHATROOM){
@@ -483,84 +531,136 @@ public class Easemob extends CordovaPlugin {
       webView.sendJavascript(js);
     }
   }
-
+  private void dealInit() { 
+	  try {
+	      int pid = android.os.Process.myPid();
+	      String processAppName = getAppName(pid);
+	      // Èç¹ûappÆôÓÃÁËÔ¶³ÌµÄservice£¬´Ëapplication:onCreate»á±»µ÷ÓÃ2´Î
+	      // ÎªÁË·ÀÖ¹»·ĞÅSDK±»³õÊ¼»¯2´Î£¬¼Ó´ËÅĞ¶Ï»á±£Ö¤SDK±»³õÊ¼»¯1´Î
+	      // Ä¬ÈÏµÄapp»áÔÚÒÔ°üÃûÎªÄ¬ÈÏµÄprocess nameÏÂÔËĞĞ£¬Èç¹û²éµ½µÄprocess name²»ÊÇappµÄprocess name¾ÍÁ¢¼´·µ»Ø
+	      if (processAppName == null
+	          || !processAppName.equalsIgnoreCase(cordova.getActivity()
+	              .getPackageName())) {
+	        Log.e(TAG, "enter the service process!");
+	        // Ôò´Ëapplication::onCreate ÊÇ±»service µ÷ÓÃµÄ£¬Ö±½Ó·µ»Ø
+	        return;
+	      }
+	      EMChat.getInstance().init(mainActivity);
+	      bindListener();
+	      //debug Ä£Ê½¿ª¹Ø
+	      EMChat.getInstance().setDebugMode(true);
+	    } catch (Exception e) {
+	      e.printStackTrace();
+	    }
+  }
   private void dealChat(JSONArray _args) {
     final JSONArray args = _args;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         String chatType, target, _contentType;
-        JSONObject content;
+        JSONObject params,content,extend;
         Type contentType;
+        final EMMessage message;
         try {
-          chatType = args.getString(0);
-          target = args.getString(1);
-          _contentType = args.getString(2);
-          content = args.getJSONObject(3);
-          contentType = EMMessage.Type.valueOf(_contentType.toUpperCase());
-          // è·å–åˆ°ä¸èŠå¤©äººçš„ä¼šè¯å¯¹è±¡ã€‚å‚æ•°usernameä¸ºèŠå¤©äººçš„useridæˆ–è€…groupidï¼Œåæ–‡ä¸­çš„usernameçš†æ˜¯å¦‚æ­¤
+          params = args.getJSONObject(0);
+          target = params.getString("target");
           EMConversation conversation = EMChatManager.getInstance()
-              .getConversation(target);
-          EMMessage message = EMMessage
-              .createSendMessage(contentType);
-          // å¦‚æœæ˜¯ç¾¤èŠï¼Œè®¾ç½®chattype,é»˜è®¤æ˜¯å•èŠ
-          if (chatType.equals("group")) {
-            message.setChatType(ChatType.GroupChat);
+                  .getConversation(target);
+          if(params.has("resend")&&params.getBoolean("resend")){
+        	  String msgId = params.getString("msgId");
+        	  message =conversation.getMessage(msgId);
+        	  message.status = EMMessage.Status.CREATE;
           }
-          switch (contentType) {
-          case VOICE:
-            VoiceMessageBody voiceBody = new VoiceMessageBody(
-                new File(content.getString("filePath")),
-                content.getInt("len"));
-            message.addBody(voiceBody);
-            break;
-          case IMAGE:
-            String path;
-            try {
-              path = getRealPathFromURI(content
-                  .getString("filePath"));
-            } catch (Exception e) {
-              emchatCallbackContext.error("å‘é€å¤±è´¥ï¼");
-              return;
-            }
+          else {
+        	  chatType = params.getString("chatType");
+              _contentType = params.getString("contentType");
+              content = params.getJSONObject("content");
+              contentType = EMMessage.Type.valueOf(_contentType.toUpperCase());
+              // »ñÈ¡µ½ÓëÁÄÌìÈËµÄ»á»°¶ÔÏó¡£²ÎÊıusernameÎªÁÄÌìÈËµÄuserid»òÕßgroupid£¬ºóÎÄÖĞµÄusername½ÔÊÇÈç´Ë
+              
+              message = EMMessage
+                  .createSendMessage(contentType);
+              // Èç¹ûÊÇÈºÁÄ£¬ÉèÖÃchattype,Ä¬ÈÏÊÇµ¥ÁÄ
+              if (chatType.equals("group")) {
+                message.setChatType(ChatType.GroupChat);
+              }
+              switch (contentType) {
+              case VOICE:
+                VoiceMessageBody voiceBody = new VoiceMessageBody(
+                    new File(content.getString("filePath")),
+                    content.getInt("len"));
+                message.addBody(voiceBody);
+                break;
+              case IMAGE:
+                String path;
+                try {
+                  path = getRealPathFromURI(content
+                      .getString("filePath"));
+                } catch (Exception e) {
+                  emchatCallbackContext.error("·¢ËÍÊ§°Ü£¡");
+                  return;
+                }
 
-            File file = new File(path);
+                File file = new File(path);
 
-            ImageMessageBody imageBody = new ImageMessageBody(file);
-            // é»˜è®¤è¶…è¿‡100kçš„å›¾ç‰‡ä¼šå‹ç¼©åå‘ç»™å¯¹æ–¹ï¼Œå¯ä»¥è®¾ç½®æˆå‘é€åŸå›¾
-            // body.setSendOriginalImage(true);
-            message.addBody(imageBody);
-            break;
-          case LOCATION:
-            LocationMessageBody locationBody = new LocationMessageBody(
-                content.getString("locationAddress"), content
-                    .getDouble("latitude"), content
-                    .getDouble("longitude"));
-            message.addBody(locationBody);
-            break;
-          case FILE:
-            NormalFileMessageBody fileBody = new NormalFileMessageBody(
-                new File(content.getString("filePath")));
-            message.addBody(fileBody);
-            break;
-          case TXT:
-          default:
-            // è®¾ç½®æ¶ˆæ¯body
-            TextMessageBody textBody = new TextMessageBody(content
-                .getString("text"));
-            message.addBody(textBody);
-            break;
+                ImageMessageBody imageBody = new ImageMessageBody(file);
+                // Ä¬ÈÏ³¬¹ı100kµÄÍ¼Æ¬»áÑ¹Ëõºó·¢¸ø¶Ô·½£¬¿ÉÒÔÉèÖÃ³É·¢ËÍÔ­Í¼
+                // body.setSendOriginalImage(true);
+                message.addBody(imageBody);
+                break;
+              case LOCATION:
+                LocationMessageBody locationBody = new LocationMessageBody(
+                    content.getString("locationAddress"), content
+                        .getDouble("latitude"), content
+                        .getDouble("longitude"));
+                message.addBody(locationBody);
+                break;
+              case FILE:
+                NormalFileMessageBody fileBody = new NormalFileMessageBody(
+                    new File(content.getString("filePath")));
+                message.addBody(fileBody);
+                break;
+              case TXT:
+              default:
+                // ÉèÖÃÏûÏ¢body
+                TextMessageBody textBody = new TextMessageBody(content
+                    .getString("text"));
+                message.addBody(textBody);
+                break;
+              }
+              if(params.has("extend")) {
+            	  extend = params.getJSONObject("extend");
+                  Iterator it = extend.keys();  
+                  while (it.hasNext()) {  
+                      String key = (String) it.next();  
+                      Object v = extend.get(key); 
+                      if (v instanceof Integer || v instanceof Long || v instanceof Float || v instanceof Double) {
+                          int value = ((Number)v).intValue();
+                          message.setAttribute(key, value);
+    	              } else if (v instanceof Boolean) {
+    	                  boolean boolToUse = ((Boolean)v).booleanValue();
+    	                  message.setAttribute(key, boolToUse);
+    	              } else {
+    	                  String stringToUse = extend.getString(key);
+                          message.setAttribute(key, stringToUse);
+    	              }
+                      
+                  }  
+              }
+              
+              // ÉèÖÃ½ÓÊÕÈË
+              message.setReceipt(target);
+              // °ÑÏûÏ¢¼ÓÈëµ½´Ë»á»°¶ÔÏóÖĞ
+              conversation.addMessage(message);
           }
-          // è®¾ç½®æ¥æ”¶äºº
-          message.setReceipt(target);
-          // æŠŠæ¶ˆæ¯åŠ å…¥åˆ°æ­¤ä¼šè¯å¯¹è±¡ä¸­
-          conversation.addMessage(message);
-          // å‘é€æ¶ˆæ¯
+          
+          // ·¢ËÍÏûÏ¢
           EMChatManager.getInstance().sendMessage(message,
               new EMCallBack() {
                 @Override
-                public void onSuccess() {
-                  Log.d("main", "å‘é€æˆåŠŸ");
-                  emchatCallbackContext.success("å‘é€æˆåŠŸ");
+                public void onSuccess( ) {
+                  Log.d("main", "·¢ËÍ³É¹¦");
+                  emchatCallbackContext.success(messageToJson(message));
                 }
 
                 @Override
@@ -569,18 +669,19 @@ public class Easemob extends CordovaPlugin {
                 }
 
                 @Override
-                public void onError(int code, String message) {
-                  Log.d("main", "å‘é€å¤±è´¥ï¼");
-                  emchatCallbackContext.error("å‘é€å¤±è´¥ï¼");
+                public void onError(int code, String errorMessage) {
+                  Log.d("main", "·¢ËÍÊ§°Ü£¡");
+                  JSONObject obj = messageToJson(message);
+                  emchatCallbackContext.error(obj);
                 }
               });
         } catch (JSONException e1) {
           // TODO Auto-generated catch block
           e1.printStackTrace();
-          emchatCallbackContext.error("å‚æ•°é”™è¯¯");
+          emchatCallbackContext.error("²ÎÊı´íÎó");
           return;
         } catch (IllegalArgumentException e) {
-          emchatCallbackContext.error("CHATç±»å‹é”™è¯¯");
+          emchatCallbackContext.error("CHATÀàĞÍ´íÎó");
         }
       }
 
@@ -593,7 +694,7 @@ public class Easemob extends CordovaPlugin {
     try {
       user = args.getString(0);
       psword = args.getString(1);
-      EMChatManager.getInstance().login(user, psword, new EMCallBack() {// å›è°ƒ
+      EMChatManager.getInstance().login(user, psword, new EMCallBack() {// »Øµ÷
             @Override
             public void onSuccess() {
               cordova.getThreadPool().execute(new Runnable() {
@@ -602,9 +703,8 @@ public class Easemob extends CordovaPlugin {
                       .loadAllGroups();
                   EMChatManager.getInstance()
                       .loadAllConversations();
-                  Log.d("main", "ç™»é™†èŠå¤©æœåŠ¡å™¨æˆåŠŸï¼");
-                  emchatCallbackContext.success("ç™»é™†èŠå¤©æœåŠ¡å™¨æˆåŠŸï¼");
-                  bindListener();
+                  Log.d("main", "µÇÂ½ÁÄÌì·şÎñÆ÷³É¹¦£¡");
+                  emchatCallbackContext.success("µÇÂ½ÁÄÌì·şÎñÆ÷³É¹¦£¡");
                 }
               });
             }
@@ -616,24 +716,24 @@ public class Easemob extends CordovaPlugin {
 
             @Override
             public void onError(int code, String message) {
-              Log.d("main", "ç™»é™†èŠå¤©æœåŠ¡å™¨å¤±è´¥ï¼");
-              emchatCallbackContext.error("ç™»é™†èŠå¤©æœåŠ¡å™¨å¤±è´¥ï¼");
+              Log.d("main", "µÇÂ½ÁÄÌì·şÎñÆ÷Ê§°Ü£¡");
+              emchatCallbackContext.error("µÇÂ½ÁÄÌì·şÎñÆ÷Ê§°Ü£¡");
             }
           });
     } catch (JSONException e) {
       e.printStackTrace();
-      emchatCallbackContext.error("å‘é€é”™è¯¯ï¼");
+      emchatCallbackContext.error("·¢ËÍ´íÎó£¡");
     }
 
   }
 
   private void dealLogout() {
-    // æ­¤æ–¹æ³•ä¸ºå¼‚æ­¥æ–¹æ³•
+    // ´Ë·½·¨ÎªÒì²½·½·¨
     EMChatManager.getInstance().logout(new EMCallBack() {
 
       @Override
       public void onSuccess() {
-        // å¦‚æœä¸æƒ³æ”¶åˆ°å›è°ƒï¼Œåˆ™æ‰§è¡Œè§£é™¤ç›‘å¬äº‹ä»¶
+        // Èç¹û²»ÏëÊÕµ½»Øµ÷£¬ÔòÖ´ĞĞ½â³ı¼àÌıÊÂ¼ş
         EMChatManager.getInstance().unregisterEventListener(
         new EMEventListener() {
 
@@ -643,7 +743,7 @@ public class Easemob extends CordovaPlugin {
 
           }
         });
-        emchatCallbackContext.success("é€€å‡ºæˆåŠŸï¼");
+        emchatCallbackContext.success("ÍË³ö³É¹¦£¡");
       }
 
       @Override
@@ -654,7 +754,7 @@ public class Easemob extends CordovaPlugin {
 
       @Override
       public void onError(int code, String message) {
-        emchatCallbackContext.error("é€€å‡ºå¤±è´¥ï¼");
+        emchatCallbackContext.error("ÍË³öÊ§°Ü£¡");
       }
     });
 
@@ -672,23 +772,23 @@ public class Easemob extends CordovaPlugin {
               .getConversation(target);
           List<EMMessage> messages;
           if (_args.length() < 3) {
-            // è·å–æ­¤ä¼šè¯çš„æ‰€æœ‰æ¶ˆæ¯
+            // »ñÈ¡´Ë»á»°µÄËùÓĞÏûÏ¢
             messages = conversation.getAllMessages();
           } else {
             final String startMsgId = _args.getString(2);
             if (chatType.equals("group")) {
-              // å¦‚æœæ˜¯ç¾¤èŠï¼Œè°ƒç”¨ä¸‹é¢æ­¤æ–¹æ³•
+              // Èç¹ûÊÇÈºÁÄ£¬µ÷ÓÃÏÂÃæ´Ë·½·¨
               messages = conversation.loadMoreGroupMsgFromDB(
                   startMsgId, pagesize);
             } else {
-              // sdkåˆå§‹åŒ–åŠ è½½çš„èŠå¤©è®°å½•ä¸º20æ¡ï¼Œåˆ°é¡¶æ—¶éœ€è¦å»dbé‡Œè·å–æ›´å¤š
-              // è·å–startMsgIdä¹‹å‰çš„pagesizeæ¡æ¶ˆæ¯ï¼Œæ­¤æ–¹æ³•è·å–çš„messages
-              // sdkä¼šè‡ªåŠ¨å­˜å…¥åˆ°æ­¤ä¼šè¯ä¸­ï¼Œappä¸­æ— éœ€å†æ¬¡æŠŠè·å–åˆ°çš„messagesæ·»åŠ åˆ°ä¼šè¯ä¸­
+              // sdk³õÊ¼»¯¼ÓÔØµÄÁÄÌì¼ÇÂ¼Îª20Ìõ£¬µ½¶¥Ê±ĞèÒªÈ¥dbÀï»ñÈ¡¸ü¶à
+              // »ñÈ¡startMsgIdÖ®Ç°µÄpagesizeÌõÏûÏ¢£¬´Ë·½·¨»ñÈ¡µÄmessages
+              // sdk»á×Ô¶¯´æÈëµ½´Ë»á»°ÖĞ£¬appÖĞÎŞĞèÔÙ´Î°Ñ»ñÈ¡µ½µÄmessagesÌí¼Óµ½»á»°ÖĞ
               messages = conversation.loadMoreMsgFromDB(
                   startMsgId, pagesize);
             }
           }
-          // æœªè¯»æ¶ˆæ¯æ•°æ¸…é›¶
+          // Î´¶ÁÏûÏ¢ÊıÇåÁã
           conversation.resetUnreadMsgCount();
           JSONArray mJSONArray = new JSONArray();
           for (int i = 0; i < messages.size(); i++) {
@@ -700,23 +800,57 @@ public class Easemob extends CordovaPlugin {
           emchatCallbackContext.sendPluginResult(pluginResult);
         } catch (JSONException e) {
           e.printStackTrace();
-          emchatCallbackContext.error("è·å–èŠå¤©è®°å½•å¤±è´¥ï¼");
+          emchatCallbackContext.error("»ñÈ¡ÁÄÌì¼ÇÂ¼Ê§°Ü£¡");
         }
       }
 
     });
 
   }
+  private void dealSetting(JSONArray args) {
+	  JSONObject params;
+	try {
+		params = args.getJSONObject(0);
+		// Ê×ÏÈ»ñÈ¡EMChatOptions
+	      EMChatOptions chatOptions = EMChatManager.getInstance().getChatOptions();
+	      if (params.has("NotifyBySoundAndVibrate")) {
+	      	// ÉèÖÃÊÇ·ñÆôÓÃĞÂÏûÏ¢ÌáĞÑ(´ò¿ª»òÕß¹Ø±ÕÏûÏ¢ÉùÒôºÍÕğ¶¯ÌáÊ¾)
+	          chatOptions.setNotifyBySoundAndVibrate(params.getBoolean("NotifyBySoundAndVibrate")); //Ä¬ÈÏÎªtrue ¿ªÆôĞÂÏûÏ¢ÌáĞÑ
+			}
+	      if (params.has("NoticeBySound")) {
+	      	// ÉèÖÃÊÇ·ñÆôÓÃĞÂÏûÏ¢ÉùÒôÌáĞÑ
+	          chatOptions.setNoticeBySound(params.getBoolean("NoticeBySound")); //Ä¬ÈÏÎªtrue ¿ªÆôÉùÒôÌáĞÑ
 
+			}
+	      if (params.has("NoticedByVibrate")) {
+	      	// ÉèÖÃÊÇ·ñÆôÓÃĞÂÏûÏ¢Õğ¶¯ÌáĞÑ
+	          chatOptions.setNoticedByVibrate(params.getBoolean("NoticedByVibrate")); //Ä¬ÈÏÎªtrue ¿ªÆôĞÂÏûÏ¢ÌáĞÑ
+			}
+	      if (params.has("UseSpeaker")) {
+	      	// ÉèÖÃÓïÒôÏûÏ¢²¥·ÅÊÇ·ñÉèÖÃÎªÑïÉùÆ÷²¥·Å
+	          chatOptions.setUseSpeaker(params.getBoolean("UseSpeaker")); //Ä¬ÈÏÎªtrue ¿ªÆôĞÂÏûÏ¢ÌáĞÑ
+			}
+	      if (params.has("ShowNotificationInBackgroud")) {
+	      	// ÉèÖÃºóÌ¨½ÓÊÕĞÂÏûÏ¢Ê±ÊÇ·ñÍ¨Í¨ÖªÀ¸ÌáÊ¾
+	          chatOptions.setShowNotificationInBackgroud(params.getBoolean("ShowNotificationInBackgroud")); //Ä¬ÈÏÎªtrue ¿ªÆôĞÂÏûÏ¢ÌáĞÑ
+			}
+	      emchatCallbackContext.success("ÉèÖÃ³É¹¦");
+	} catch (JSONException e) {
+		e.printStackTrace();
+		emchatCallbackContext.error("ÉèÖÃÊ§°Ü");
+	}
+      
+
+  }
   private void bindListener() {
     noifier = new HXNotifier();
     noifier.init(cordova.getActivity().getApplicationContext());
     // EMChatOptions chatOptions = EMChatManager.getInstance()
     // .getChatOptions();
     // chatOptions.setOnNotificationClickListener(getOnNotificationClickListener());
-    // è¦†ç›–æ¶ˆæ¯æé†’è®¾ç½®
+    // ¸²¸ÇÏûÏ¢ÌáĞÑÉèÖÃ
     // noifier.setNotificationInfoProvider(getNotificationListener());
-    // æ¥æ”¶æ‰€æœ‰çš„eventäº‹ä»¶
+    // ½ÓÊÕËùÓĞµÄeventÊÂ¼ş
     EMChatManager.getInstance().registerEventListener(
         new EMEventListener() {
 
@@ -734,7 +868,7 @@ public class Easemob extends CordovaPlugin {
 
             switch (event.getEvent()) {
             case EventNewMessage:
-              // åº”ç”¨åœ¨åå°ï¼Œä¸éœ€è¦åˆ·æ–°UI,é€šçŸ¥æ æç¤ºæ–°æ¶ˆæ¯
+              // Ó¦ÓÃÔÚºóÌ¨£¬²»ĞèÒªË¢ĞÂUI,Í¨ÖªÀ¸ÌáÊ¾ĞÂÏûÏ¢
               if (!EasyUtils.isAppRunningForeground(appContext)) {
                 EMLog.d(TAG, "app is running in backgroud");
                 noifier.onNewMsg(message);
@@ -790,9 +924,9 @@ public class Easemob extends CordovaPlugin {
         });
   }
     /**
-     * æ¶ˆæ¯è½¬ä¸ºjsonæ ¼å¼
-     * @param  message æ¶ˆæ¯
-     * @return         jsonæ ¼å¼çš„message
+     * ÏûÏ¢×ªÎªjson¸ñÊ½
+     * @param  message ÏûÏ¢
+     * @return         json¸ñÊ½µÄmessage
      */
   public static JSONObject messageToJson(EMMessage message) {
 
@@ -869,9 +1003,9 @@ public class Easemob extends CordovaPlugin {
 
   }
   /**
-   * ç¾¤èŠè½¬ä¸ºjsonæ ¼å¼
-   * @param  group ç¾¤èŠä¿¡æ¯
-   * @return         jsonæ ¼å¼çš„ç¾¤èŠä¿¡æ¯
+   * ÈºÁÄ×ªÎªjson¸ñÊ½
+   * @param  group ÈºÁÄĞÅÏ¢
+   * @return         json¸ñÊ½µÄÈºÁÄĞÅÏ¢
    */
   public static JSONObject groupToJson(EMGroup group) {
 
@@ -890,9 +1024,9 @@ public class Easemob extends CordovaPlugin {
 
   }
   /**
-   * ç¾¤èŠè½¬ä¸ºjsonArrayæ ¼å¼
-   * @param  groups ç¾¤èŠä¿¡æ¯
-   * @return         jsonæ ¼å¼çš„ç¾¤èŠä¿¡æ¯
+   * ÈºÁÄ×ªÎªjsonArray¸ñÊ½
+   * @param  groups ÈºÁÄĞÅÏ¢
+   * @return         json¸ñÊ½µÄÈºÁÄĞÅÏ¢
    */
   public static JSONArray groupsToJson(List<EMGroup> groups) {
 
@@ -907,33 +1041,33 @@ public class Easemob extends CordovaPlugin {
 
   }
   /**
-   * è‡ªå®šä¹‰é€šçŸ¥æ æç¤ºå†…å®¹
+   * ×Ô¶¨ÒåÍ¨ÖªÀ¸ÌáÊ¾ÄÚÈİ
    * 
    * @return
    */
   protected HXNotificationInfoProvider getNotificationListener() {
-    // å¯ä»¥è¦†ç›–é»˜è®¤çš„è®¾ç½®
+    // ¿ÉÒÔ¸²¸ÇÄ¬ÈÏµÄÉèÖÃ
     return new HXNotificationInfoProvider() {
 
       @Override
       public String getTitle(EMMessage message) {
-        // ä¿®æ”¹æ ‡é¢˜,è¿™é‡Œä½¿ç”¨é»˜è®¤
+        // ĞŞ¸Ä±êÌâ,ÕâÀïÊ¹ÓÃÄ¬ÈÏ
         return null;
       }
 
       @Override
       public int getSmallIcon(EMMessage message) {
-        // è®¾ç½®å°å›¾æ ‡ï¼Œè¿™é‡Œä¸ºé»˜è®¤
+        // ÉèÖÃĞ¡Í¼±ê£¬ÕâÀïÎªÄ¬ÈÏ
         return 0;
       }
 
       @Override
       public String getDisplayedText(EMMessage message) {
-        // è®¾ç½®çŠ¶æ€æ çš„æ¶ˆæ¯æç¤ºï¼Œå¯ä»¥æ ¹æ®messageçš„ç±»å‹åšç›¸åº”æç¤º
+        // ÉèÖÃ×´Ì¬À¸µÄÏûÏ¢ÌáÊ¾£¬¿ÉÒÔ¸ù¾İmessageµÄÀàĞÍ×öÏàÓ¦ÌáÊ¾
         // String ticker = CommonUtils.getMessageDigest(message,
         // appContext);
         // if(message.getType() == Type.TXT){
-        // ticker = ticker.replaceAll("\\[.{2,3}\\]", "[è¡¨æƒ…]");
+        // ticker = ticker.replaceAll("\\[.{2,3}\\]", "[±íÇé]");
         // }
 
         // return message.getFrom() + ": " + ticker;
@@ -944,12 +1078,12 @@ public class Easemob extends CordovaPlugin {
       public String getLatestText(EMMessage message, int fromUsersNum,
           int messageNum) {
         return null;
-        // return fromUsersNum + "ä¸ªåŸºå‹ï¼Œå‘æ¥äº†" + messageNum + "æ¡æ¶ˆæ¯";
+        // return fromUsersNum + "¸ö»ùÓÑ£¬·¢À´ÁË" + messageNum + "ÌõÏûÏ¢";
       }
 
       @Override
       public Intent getLaunchIntent(EMMessage message) {
-        // è®¾ç½®ç‚¹å‡»é€šçŸ¥æ è·³è½¬äº‹ä»¶
+        // ÉèÖÃµã»÷Í¨ÖªÀ¸Ìø×ªÊÂ¼ş
         // String msg = messageToJson(message).toString();
         // fireEvent("ClickNotification", msg);
         return null;
