@@ -64,7 +64,7 @@ angular.module('starter.controllers', [])
       }])
   } 
   $scope.send= function () {
-   easemob.chat(function (chat) {
+    easemob.chat(function (chat) {
       $scope.chat = chat;
     $scope.$digest();
     },function (chat) {
@@ -78,12 +78,12 @@ angular.module('starter.controllers', [])
       }])
   } 
   $scope.clearMessages = function () {
-    $scope.chats =[]
+    $scope.chats =[];
   }
   $scope.getMessages= function () {
-    var param = [$scope.content.type,$scope.content.user]
+    var param = [$scope.content.type,$scope.content.user];
     if($scope.msgId){
-      param.push($scope.msgId)
+      param.push($scope.msgId);
     }
     easemob.getMessages(function (chats) {
       $scope.chats = $scope.chats ? chats.concat($scope.chats):chats;
@@ -92,7 +92,7 @@ angular.module('starter.controllers', [])
     },function (argument) {
       alert(argument);
       console.log(argument);
-    },param)
+    },param);
   } 
   //
   var my_media = null;
@@ -200,50 +200,34 @@ angular.module('starter.controllers', [])
   }
 
 
-function ImageOnSuccess(imageURI) {
-  if(imageURI instanceof Array) {
-    imageURI =imageURI[0];
+  function ImageOnSuccess(imageURI) {
+    if(imageURI instanceof Array) {
+      imageURI = imageURI[0];
+    }
+    console.log(imageURI);
+    easemob.chat(function (argument) {
+      alert(argument);
+      console.log(argument);
+    },function (argument) {
+      alert(argument);
+      console.log(argument);
+    },[$scope.content.type, $scope.content.user, 'IMAGE', {'filePath':imageURI}])
   }
-  console.log(imageURI);
-  easemob.chat(function (argument) {
-    alert(argument);
-    console.log(argument);
-  },function (argument) {
-    alert(argument);
-    console.log(argument);
-  },[$scope.content.type,$scope.content.user,'IMAGE',{'filePath':imageURI}])
-}
 
-function ImageOnFail(message) {
+  function ImageOnFail(message) {
     alert('Failed because: ' + message);
-}
-  $scope.captureImage = function (source) {
-    switch(source) {
-      case 'photolibrary':
-        source = Camera.PictureSourceType.PHOTOLIBRARY;
-        break;
-      case 'savedphotoalbum':
-        source = Camera.PictureSourceType.SAVEDPHOTOALBUM;
-        break;
-      case 'camera':
-        source = Camera.PictureSourceType.CAMERA;
-        navigator.camera.getPicture(ImageOnSuccess, ImageOnFail, { quality: 50,
-          destinationType: Camera.DestinationType.FILE_URI,sourceType: source });
-        return;
-        break;
-        
-    }
-    
-    window.imagePicker.getPictures(
-    ImageOnSuccess, ImageOnFail, {
-        maximumImagesCount: 1,
-        width: 800
-    }
-);
   }
-
-
-
+  $scope.captureImage = function (source) {
+    if(source === 'camera') {
+      source = Camera.PictureSourceType.CAMERA;
+      navigator.camera.getPicture(ImageOnSuccess, ImageOnFail, { quality: 50,
+        destinationType: Camera.DestinationType.FILE_URI,sourceType: source });
+      return;
+    }
+    window.imagePicker.getPictures(ImageOnSuccess, ImageOnFail, {
+      maximumImagesCount: 1, width: 800
+    });
+  }
 })
 
 .controller('AccountCtrl', function($scope) {
