@@ -74,7 +74,8 @@ angular.module('starter.controllers', [])
       chatType:$scope.content.type,
       target:$scope.content.user,
       contentType:'txt',
-      content:{'text':$scope.content.text}
+      content:{'text':$scope.content.text},
+      extend:{a:1}
       }])
   } 
   $scope.clearMessages = function () {
@@ -98,8 +99,9 @@ angular.module('starter.controllers', [])
   var my_media = null;
   var mediaTimer = null;
   function playAudio(body) {
+    var url = body.localUrl ?('file://'+body.localUrl):body.remoteUrl;
     // Create Media object from src
-    my_media = new Media(body.url, mediaOnSuccess, mediaOnError);
+    my_media = new Media(url, mediaOnSuccess, mediaOnError);
     // Play audio
     my_media.play();
     // Update my_media position every second

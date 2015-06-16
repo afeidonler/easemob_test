@@ -83,33 +83,14 @@ public class Easemob extends CordovaPlugin {
   private static Boolean deviceready = false;
 
   enum actionType {
-	INIT,
-    LOGIN,
-    LOGOUT,
-    CHAT,
-    RECORDSTART,
-    RECORDEND,
-    RECORDCANCEL,
-    GETMESSAGES,
-    PAUSE,
-    RESUME,
-    GETUNREADMSGCOUNT,
-    RESETUNRADMSGCOUNT,
-    GETMSGCOUNT,
-    DELETECONVERSATIONS,
-    DELETECONVERSATION,
-    GETGROUPS,
-    GETGROUP,
-    GETCONTACTS,
-    ADDCONTACT,
-    DELETECONTACT,
-    SETTING
+    INIT, LOGIN, LOGOUT, CHAT, RECORDSTART, RECORDEND, RECORDCANCEL, GETMESSAGES, PAUSE, RESUME, GETUNREADMSGCOUNT, RESETUNRADMSGCOUNT, GETMSGCOUNT, DELETECONVERSATIONS, DELETECONVERSATION, GETGROUPS, GETGROUP, GETCONTACTS, ADDCONTACT, DELETECONTACT, SETTING
   }
 
-  @SuppressLint("HandlerLeak") private Handler micImageHandler = new Handler() {
+  @SuppressLint("HandlerLeak")
+  private Handler micImageHandler = new Handler() {
     @Override
     public void handleMessage(android.os.Message msg) {
-      //录音过程中的处理函数，what代表了音量大小
+      // 录音过程中的处理函数，what代表了音量大小
       Log.d("Easemob", msg.toString());
       fireEvent("Record", "{what:" + msg.what + "}");
       // micImage.setImageDrawable(micImages[msg.what]);
@@ -150,8 +131,8 @@ public class Easemob extends CordovaPlugin {
     EMConversation conversation;
     switch (actionType.valueOf(action.toUpperCase())) {
     case INIT:
-        dealInit();
-        break;
+      dealInit();
+      break;
     case LOGIN:
       dealLogin(args);
       break;
@@ -168,25 +149,25 @@ public class Easemob extends CordovaPlugin {
           .getApplicationContext());
       break;
     case RECORDEND:
-      if(voiceRecorder==null){
-    	  emchatCallbackContext.error("当前没有录音");
+      if (voiceRecorder == null) {
+        emchatCallbackContext.error("当前没有录音");
+      } else {
+        String chatType = args.getString(0);
+        target = args.getString(1);
+        // 获取到与聊天人的会话对象。参数username为聊天人的userid或者groupid，后文中的username皆是如此
+        conversation = EMChatManager.getInstance().getConversation(
+            target);
+        int length = voiceRecorder.stopRecoding();
+        if (length > 0) {
+          sendVoice(conversation, chatType, target,
+              voiceRecorder.getVoiceFilePath(),
+              voiceRecorder.getVoiceFileName(target),
+              Integer.toString(length), false);
+        } else {
+          emchatCallbackContext.error("录音时间过短");
+        }
       }
-      else {
-    	  String chatType = args.getString(0);
-          target = args.getString(1);
-          // 获取到与聊天人的会话对象。参数username为聊天人的userid或者groupid，后文中的username皆是如此
-          conversation = EMChatManager.getInstance().getConversation(target);
-          int length = voiceRecorder.stopRecoding();
-          if (length > 0) {
-            sendVoice(conversation, chatType, target,
-                voiceRecorder.getVoiceFilePath(),
-                voiceRecorder.getVoiceFileName(target),
-                Integer.toString(length), false);
-          } else {
-            emchatCallbackContext.error("录音时间过短");
-          }
-      }
-      
+
       break;
     case RECORDCANCEL:
       if (voiceRecorder != null) {
@@ -215,7 +196,7 @@ public class Easemob extends CordovaPlugin {
       cordova.getThreadPool().execute(new Runnable() {
         public void run() {
           deviceready();
-          if(noifier!=null)
+          if (noifier != null)
             noifier.reset();
         }
       });
@@ -263,7 +244,8 @@ public class Easemob extends CordovaPlugin {
             new EMValueCallBack<List<EMGroup>>() {
               @Override
               public void onSuccess(List<EMGroup> value) {
-                emchatCallbackContext.success(groupsToJson(value));
+                emchatCallbackContext
+                    .success(groupsToJson(value));
               }
 
               @Override
@@ -308,11 +290,11 @@ public class Easemob extends CordovaPlugin {
       break;
     case GETCONTACTS:
       try {
-        List<String> usernames = EMContactManager.getInstance().getContactUserNames();//需异步执行
+        List<String> usernames = EMContactManager.getInstance()
+            .getContactUserNames();// 需异步执行
         JSONArray mJSONArray = new JSONArray(usernames);
         emchatCallbackContext.success(mJSONArray);
-      }
-      catch (EaseMobException e){
+      } catch (EaseMobException e) {
         emchatCallbackContext.error(e.toString());
       }
       break;
@@ -320,34 +302,31 @@ public class Easemob extends CordovaPlugin {
       try {
         target = args.getString(0);
         String reason;
-        if(args.length()>1) {
+        if (args.length() > 1) {
           reason = args.getString(1);
-        }
-        else {
+        } else {
           reason = "";
         }
-        //参数为要添加的好友的username和添加理由
-        EMContactManager.getInstance().addContact(target, reason);//需异步处理
+        // 参数为要添加的好友的username和添加理由
+        EMContactManager.getInstance().addContact(target, reason);// 需异步处理
         emchatCallbackContext.success("成功");
-      }
-      catch (EaseMobException e){
+      } catch (EaseMobException e) {
         emchatCallbackContext.error(e.toString());
       }
       break;
     case DELETECONTACT:
       try {
         target = args.getString(0);
-        EMContactManager.getInstance().deleteContact(target);//需异步处理
+        EMContactManager.getInstance().deleteContact(target);// 需异步处理
         emchatCallbackContext.success("成功");
-      }
-      catch (EaseMobException e){
+      } catch (EaseMobException e) {
         emchatCallbackContext.error(e.toString());
       }
       break;
     case SETTING:
-    	dealSetting(args);
+      dealSetting(args);
       break;
-      
+
     default:
       return false;
     }
@@ -531,136 +510,142 @@ public class Easemob extends CordovaPlugin {
       webView.sendJavascript(js);
     }
   }
-  private void dealInit() { 
-	  try {
-	      int pid = android.os.Process.myPid();
-	      String processAppName = getAppName(pid);
-	      // 如果app启用了远程的service，此application:onCreate会被调用2次
-	      // 为了防止环信SDK被初始化2次，加此判断会保证SDK被初始化1次
-	      // 默认的app会在以包名为默认的process name下运行，如果查到的process name不是app的process name就立即返回
-	      if (processAppName == null
-	          || !processAppName.equalsIgnoreCase(cordova.getActivity()
-	              .getPackageName())) {
-	        Log.e(TAG, "enter the service process!");
-	        // 则此application::onCreate 是被service 调用的，直接返回
-	        return;
-	      }
-	      EMChat.getInstance().init(mainActivity);
-	      bindListener();
-	      //debug 模式开关
-	      EMChat.getInstance().setDebugMode(true);
-	    } catch (Exception e) {
-	      e.printStackTrace();
-	    }
+
+  private void dealInit() {
+    try {
+      int pid = android.os.Process.myPid();
+      String processAppName = getAppName(pid);
+      // 如果app启用了远程的service，此application:onCreate会被调用2次
+      // 为了防止环信SDK被初始化2次，加此判断会保证SDK被初始化1次
+      // 默认的app会在以包名为默认的process name下运行，如果查到的process name不是app的process
+      // name就立即返回
+      if (processAppName == null
+          || !processAppName.equalsIgnoreCase(cordova.getActivity()
+              .getPackageName())) {
+        Log.e(TAG, "enter the service process!");
+        // 则此application::onCreate 是被service 调用的，直接返回
+        return;
+      }
+      EMChat.getInstance().init(mainActivity);
+      bindListener();
+      // debug 模式开关
+      EMChat.getInstance().setDebugMode(true);
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
   }
+
   private void dealChat(JSONArray _args) {
     final JSONArray args = _args;
     cordova.getThreadPool().execute(new Runnable() {
       public void run() {
         String chatType, target, _contentType;
-        JSONObject params,content,extend;
+        JSONObject params, content, extend;
         Type contentType;
         final EMMessage message;
         try {
           params = args.getJSONObject(0);
           target = params.getString("target");
           EMConversation conversation = EMChatManager.getInstance()
-                  .getConversation(target);
-          if(params.has("resend")&&params.getBoolean("resend")){
-        	  String msgId = params.getString("msgId");
-        	  message =conversation.getMessage(msgId);
-        	  message.status = EMMessage.Status.CREATE;
-          }
-          else {
-        	  chatType = params.getString("chatType");
-              _contentType = params.getString("contentType");
-              content = params.getJSONObject("content");
-              contentType = EMMessage.Type.valueOf(_contentType.toUpperCase());
-              // 获取到与聊天人的会话对象。参数username为聊天人的userid或者groupid，后文中的username皆是如此
-              
-              message = EMMessage
-                  .createSendMessage(contentType);
-              // 如果是群聊，设置chattype,默认是单聊
-              if (chatType.equals("group")) {
-                message.setChatType(ChatType.GroupChat);
-              }
-              switch (contentType) {
-              case VOICE:
-                VoiceMessageBody voiceBody = new VoiceMessageBody(
-                    new File(content.getString("filePath")),
-                    content.getInt("len"));
-                message.addBody(voiceBody);
-                break;
-              case IMAGE:
-                String path;
-                try {
-                  path = getRealPathFromURI(content
-                      .getString("filePath"));
-                } catch (Exception e) {
-                  emchatCallbackContext.error("发送失败！");
-                  return;
-                }
+              .getConversation(target);
+          if (params.has("resend") && params.getBoolean("resend")) {
+            String msgId = params.getString("msgId");
+            message = conversation.getMessage(msgId);
+            message.status = EMMessage.Status.CREATE;
+          } else {
+            chatType = params.getString("chatType");
+            _contentType = params.getString("contentType");
+            content = params.getJSONObject("content");
+            contentType = EMMessage.Type.valueOf(_contentType
+                .toUpperCase());
+            // 获取到与聊天人的会话对象。参数username为聊天人的userid或者groupid，后文中的username皆是如此
 
-                File file = new File(path);
+            message = EMMessage.createSendMessage(contentType);
+            // 如果是群聊，设置chattype,默认是单聊
+            if (chatType.equals("group")) {
+              message.setChatType(ChatType.GroupChat);
+            }
+            switch (contentType) {
+            case VOICE:
+              VoiceMessageBody voiceBody = new VoiceMessageBody(
+                  new File(content.getString("filePath")),
+                  content.getInt("len"));
+              message.addBody(voiceBody);
+              break;
+            case IMAGE:
+              String path;
+              try {
+                path = getRealPathFromURI(content
+                    .getString("filePath"));
+              } catch (Exception e) {
+                emchatCallbackContext.error("发送失败！");
+                return;
+              }
 
-                ImageMessageBody imageBody = new ImageMessageBody(file);
-                // 默认超过100k的图片会压缩后发给对方，可以设置成发送原图
-                // body.setSendOriginalImage(true);
-                message.addBody(imageBody);
-                break;
-              case LOCATION:
-                LocationMessageBody locationBody = new LocationMessageBody(
-                    content.getString("locationAddress"), content
-                        .getDouble("latitude"), content
-                        .getDouble("longitude"));
-                message.addBody(locationBody);
-                break;
-              case FILE:
-                NormalFileMessageBody fileBody = new NormalFileMessageBody(
-                    new File(content.getString("filePath")));
-                message.addBody(fileBody);
-                break;
-              case TXT:
-              default:
-                // 设置消息body
-                TextMessageBody textBody = new TextMessageBody(content
-                    .getString("text"));
-                message.addBody(textBody);
-                break;
-              }
-              if(params.has("extend")) {
-            	  extend = params.getJSONObject("extend");
-                  Iterator it = extend.keys();  
-                  while (it.hasNext()) {  
-                      String key = (String) it.next();  
-                      Object v = extend.get(key); 
-                      if (v instanceof Integer || v instanceof Long || v instanceof Float || v instanceof Double) {
-                          int value = ((Number)v).intValue();
-                          message.setAttribute(key, value);
-    	              } else if (v instanceof Boolean) {
-    	                  boolean boolToUse = ((Boolean)v).booleanValue();
-    	                  message.setAttribute(key, boolToUse);
-    	              } else {
-    	                  String stringToUse = extend.getString(key);
-                          message.setAttribute(key, stringToUse);
-    	              }
-                      
-                  }  
-              }
-              
-              // 设置接收人
-              message.setReceipt(target);
-              // 把消息加入到此会话对象中
-              conversation.addMessage(message);
+              File file = new File(path);
+
+              ImageMessageBody imageBody = new ImageMessageBody(
+                  file);
+              // 默认超过100k的图片会压缩后发给对方，可以设置成发送原图
+              // body.setSendOriginalImage(true);
+              message.addBody(imageBody);
+              break;
+            case LOCATION:
+              LocationMessageBody locationBody = new LocationMessageBody(
+                  content.getString("locationAddress"),
+                  content.getDouble("latitude"), content
+                      .getDouble("longitude"));
+              message.addBody(locationBody);
+              break;
+            case FILE:
+              NormalFileMessageBody fileBody = new NormalFileMessageBody(
+                  new File(content.getString("filePath")));
+              message.addBody(fileBody);
+              break;
+            case TXT:
+            default:
+              // 设置消息body
+              TextMessageBody textBody = new TextMessageBody(
+                  content.getString("text"));
+              message.addBody(textBody);
+              break;
+            }
+            if (params.has("extend")) {
+              extend = params.getJSONObject("extend");
+              message.setAttribute("extend", extend);
+              // Iterator it = extend.keys();
+              // while (it.hasNext()) {
+              // String key = (String) it.next();
+              // Object v = extend.get(key);
+              // if (v instanceof Integer || v instanceof Long ||
+              // v instanceof Float || v instanceof Double) {
+              // int value = ((Number)v).intValue();
+              // message.setAttribute(key, value);
+              // } else if (v instanceof Boolean) {
+              // boolean boolToUse = ((Boolean)v).booleanValue();
+              // message.setAttribute(key, boolToUse);
+              // } else {
+              // String stringToUse = extend.getString(key);
+              // message.setAttribute(key, stringToUse);
+              // }
+
+              // }
+            }
+
+            // 设置接收人
+            message.setReceipt(target);
+            // 把消息加入到此会话对象中
+            conversation.addMessage(message);
           }
-          
+
           // 发送消息
           EMChatManager.getInstance().sendMessage(message,
               new EMCallBack() {
                 @Override
-                public void onSuccess( ) {
+                public void onSuccess() {
                   Log.d("main", "发送成功");
-                  emchatCallbackContext.success(messageToJson(message));
+                  emchatCallbackContext
+                      .success(messageToJson(message));
                 }
 
                 @Override
@@ -669,7 +654,8 @@ public class Easemob extends CordovaPlugin {
                 }
 
                 @Override
-                public void onError(int code, String errorMessage) {
+                public void onError(int code,
+                    String errorMessage) {
                   Log.d("main", "发送失败！");
                   JSONObject obj = messageToJson(message);
                   emchatCallbackContext.error(obj);
@@ -735,14 +721,14 @@ public class Easemob extends CordovaPlugin {
       public void onSuccess() {
         // 如果不想收到回调，则执行解除监听事件
         EMChatManager.getInstance().unregisterEventListener(
-        new EMEventListener() {
+            new EMEventListener() {
 
-          @Override
-          public void onEvent(EMNotifierEvent event) {
-            // TODO Auto-generated method stub
+              @Override
+              public void onEvent(EMNotifierEvent event) {
+                // TODO Auto-generated method stub
 
-          }
-        });
+              }
+            });
         emchatCallbackContext.success("退出成功！");
       }
 
@@ -807,41 +793,51 @@ public class Easemob extends CordovaPlugin {
     });
 
   }
-  private void dealSetting(JSONArray args) {
-	  JSONObject params;
-	try {
-		params = args.getJSONObject(0);
-		// 首先获取EMChatOptions
-	      EMChatOptions chatOptions = EMChatManager.getInstance().getChatOptions();
-	      if (params.has("NotifyBySoundAndVibrate")) {
-	      	// 设置是否启用新消息提醒(打开或者关闭消息声音和震动提示)
-	          chatOptions.setNotifyBySoundAndVibrate(params.getBoolean("NotifyBySoundAndVibrate")); //默认为true 开启新消息提醒
-			}
-	      if (params.has("NoticeBySound")) {
-	      	// 设置是否启用新消息声音提醒
-	          chatOptions.setNoticeBySound(params.getBoolean("NoticeBySound")); //默认为true 开启声音提醒
 
-			}
-	      if (params.has("NoticedByVibrate")) {
-	      	// 设置是否启用新消息震动提醒
-	          chatOptions.setNoticedByVibrate(params.getBoolean("NoticedByVibrate")); //默认为true 开启新消息提醒
-			}
-	      if (params.has("UseSpeaker")) {
-	      	// 设置语音消息播放是否设置为扬声器播放
-	          chatOptions.setUseSpeaker(params.getBoolean("UseSpeaker")); //默认为true 开启新消息提醒
-			}
-	      if (params.has("ShowNotificationInBackgroud")) {
-	      	// 设置后台接收新消息时是否通通知栏提示
-	          chatOptions.setShowNotificationInBackgroud(params.getBoolean("ShowNotificationInBackgroud")); //默认为true 开启新消息提醒
-			}
-	      emchatCallbackContext.success("设置成功");
-	} catch (JSONException e) {
-		e.printStackTrace();
-		emchatCallbackContext.error("设置失败");
-	}
-      
+  private void dealSetting(JSONArray args) {
+    JSONObject params;
+    try {
+      params = args.getJSONObject(0);
+      // 首先获取EMChatOptions
+      EMChatOptions chatOptions = EMChatManager.getInstance()
+          .getChatOptions();
+      if (params.has("NotifyBySoundAndVibrate")) {
+        // 设置是否启用新消息提醒(打开或者关闭消息声音和震动提示)
+        chatOptions.setNotifyBySoundAndVibrate(params
+            .getBoolean("NotifyBySoundAndVibrate")); // 默认为true
+                                  // 开启新消息提醒
+      }
+      if (params.has("NoticeBySound")) {
+        // 设置是否启用新消息声音提醒
+        chatOptions
+            .setNoticeBySound(params.getBoolean("NoticeBySound")); // 默认为true
+                                        // 开启声音提醒
+
+      }
+      if (params.has("NoticedByVibrate")) {
+        // 设置是否启用新消息震动提醒
+        chatOptions.setNoticedByVibrate(params
+            .getBoolean("NoticedByVibrate")); // 默认为true 开启新消息提醒
+      }
+      if (params.has("UseSpeaker")) {
+        // 设置语音消息播放是否设置为扬声器播放
+        chatOptions.setUseSpeaker(params.getBoolean("UseSpeaker")); // 默认为true
+                                      // 开启新消息提醒
+      }
+      if (params.has("ShowNotificationInBackgroud")) {
+        // 设置后台接收新消息时是否通通知栏提示
+        chatOptions.setShowNotificationInBackgroud(params
+            .getBoolean("ShowNotificationInBackgroud")); // 默认为true
+                                    // 开启新消息提醒
+      }
+      emchatCallbackContext.success("设置成功");
+    } catch (JSONException e) {
+      e.printStackTrace();
+      emchatCallbackContext.error("设置失败");
+    }
 
   }
+
   private void bindListener() {
     noifier = new HXNotifier();
     noifier.init(cordova.getActivity().getApplicationContext());
@@ -923,11 +919,14 @@ public class Easemob extends CordovaPlugin {
           };
         });
   }
-    /**
-     * 消息转为json格式
-     * @param  message 消息
-     * @return         json格式的message
-     */
+
+  /**
+   * 消息转为json格式
+   * 
+   * @param message
+   *            消息
+   * @return json格式的message
+   */
   public static JSONObject messageToJson(EMMessage message) {
 
     JSONObject msgJson = new JSONObject();
@@ -946,26 +945,26 @@ public class Easemob extends CordovaPlugin {
           .put("unRead", message.isUnread())
           .put("isListened", message.isListened())
           .put("userName", message.getUserName());
+
       JSONObject body = new JSONObject();
 
       switch (message.getType()) {
       case VOICE:
         VoiceMessageBody voiceBody = (VoiceMessageBody) message
             .getBody();
-        body.put("url", voiceBody.getLocalUrl())
+        body.put("localUrl", voiceBody.getLocalUrl())
+            .put("remoteUrl", voiceBody.getRemoteUrl())
             .put("name", voiceBody.getFileName())
             .put("size", voiceBody.getLength());
         break;
       case IMAGE:
         ImageMessageBody imageBody = (ImageMessageBody) message
             .getBody();
-        if(message.direct.equals(EMMessage.Direct.SEND)){
-          body.put("url", imageBody.getLocalUrl());
-        }
-        else {
-           body.put("url", imageBody.getThumbnailUrl());
-        }
-       
+          body.put("localUrl", imageBody.getLocalUrl())
+              .put("remoteUrl", imageBody.getRemoteUrl())
+              .put("thumbnailUrl", imageBody.getThumbnailUrl());
+          
+
         break;
       case LOCATION:
         LocationMessageBody locationBody = (LocationMessageBody) message
@@ -977,16 +976,11 @@ public class Easemob extends CordovaPlugin {
       case FILE:
         NormalFileMessageBody fileBody = (NormalFileMessageBody) message
             .getBody();
-        body.put("url", fileBody.getLocalUrl())
-            .put("name", fileBody.getFileName())
-            .put("size", fileBody.getFileSize());
-        if(message.direct.equals(EMMessage.Direct.SEND)){
-          body.put("url", fileBody.getLocalUrl());
-        }
-        else {
-           body.put("url", fileBody.getRemoteUrl());
-        }
-       
+        body.put("name", fileBody.getFileName())
+            .put("size", fileBody.getFileSize())
+            .put("localUrl", fileBody.getLocalUrl())
+            .put("remoteUrl", fileBody.getRemoteUrl());
+
         break;
       case TXT:
       default:
@@ -994,18 +988,25 @@ public class Easemob extends CordovaPlugin {
         body.put("text", txtBody.getMessage());
         break;
       }
+      try {
+        msgJson.put("extend", message.getJSONObjectAttribute("extend"));
+      } catch (EaseMobException e) {
+        e.printStackTrace();
+      }
       msgJson.put("body", body);
     } catch (JSONException e) {
       e.printStackTrace();
     }
-
     return msgJson;
 
   }
+
   /**
    * 群聊转为json格式
-   * @param  group 群聊信息
-   * @return         json格式的群聊信息
+   * 
+   * @param group
+   *            群聊信息
+   * @return json格式的群聊信息
    */
   public static JSONObject groupToJson(EMGroup group) {
 
@@ -1023,23 +1024,26 @@ public class Easemob extends CordovaPlugin {
     return msgJson;
 
   }
+
   /**
    * 群聊转为jsonArray格式
-   * @param  groups 群聊信息
-   * @return         json格式的群聊信息
+   * 
+   * @param groups
+   *            群聊信息
+   * @return json格式的群聊信息
    */
   public static JSONArray groupsToJson(List<EMGroup> groups) {
 
     JSONArray mJSONArray = new JSONArray();
     for (int i = 0; i < groups.size(); i++) {
-      JSONObject _group = groupToJson(groups
-          .get(i));
+      JSONObject _group = groupToJson(groups.get(i));
       mJSONArray.put(_group);
     }
 
     return mJSONArray;
 
   }
+
   /**
    * 自定义通知栏提示内容
    * 
@@ -1094,27 +1098,26 @@ public class Easemob extends CordovaPlugin {
   private String getRealPathFromURI(String uriStr) {
     if (uriStr.indexOf("file:") == 0) {
       return uriStr.substring(7);
-    }
-    else {
+    } else {
       Uri contentUri = Uri.parse(uriStr);
-        Cursor cursor = cordova.getActivity().getContentResolver()
-            .query(contentUri, null, null, null, null);
-        if (cursor != null) {
-          cursor.moveToFirst();
-          int columnIndex = cursor.getColumnIndex("_data");
-          String picturePath = cursor.getString(columnIndex);
-          cursor.close();
-          cursor = null;
+      Cursor cursor = cordova.getActivity().getContentResolver()
+          .query(contentUri, null, null, null, null);
+      if (cursor != null) {
+        cursor.moveToFirst();
+        int columnIndex = cursor.getColumnIndex("_data");
+        String picturePath = cursor.getString(columnIndex);
+        cursor.close();
+        cursor = null;
 
-          if (picturePath == null || picturePath.equals("null")) {
-            throw new IllegalArgumentException("null");
-          }
-          return picturePath;
-        } else {
-          return contentUri.getPath();
+        if (picturePath == null || picturePath.equals("null")) {
+          throw new IllegalArgumentException("null");
         }
+        return picturePath;
+      } else {
+        return contentUri.getPath();
+      }
     }
-    
+
   }
 
   private String getAppName(int pID) {
