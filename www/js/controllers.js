@@ -51,32 +51,34 @@ angular.module('starter.controllers', [])
     type:''
   }
   $scope.resend= function () {
-   easemob.chat(function (chat) {
+    easemob.chat(function (chat) {
       $scope.chat = chat;
-    $scope.$digest();
+      console.log(chat);
+      $scope.$digest();
     },function (chat) {
       $scope.chat = chat;
-    $scope.$digest();
+      $scope.$digest();
     },[{
       target:$scope.content.user,
       resend:true,
       msgId:$scope.content.text
-      }])
+    }])
   } 
   $scope.send= function () {
     easemob.chat(function (chat) {
       $scope.chat = chat;
-    $scope.$digest();
+      console.log(chat);
+      $scope.$digest();
     },function (chat) {
       $scope.chat = chat;
-    $scope.$digest();
+      $scope.$digest();
     },[{
       chatType:$scope.content.type,
       target:$scope.content.user,
-      contentType:'txt',
-      content:{'text':$scope.content.text},
+      contentType:'TXT',
+      content:{'text':$scope.content.text}，
       extend:{a:1}
-      }])
+    }])
   } 
   $scope.clearMessages = function () {
     $scope.chats =[];
@@ -213,7 +215,13 @@ angular.module('starter.controllers', [])
     },function (argument) {
       alert(argument);
       console.log(argument);
-    },[$scope.content.type, $scope.content.user, 'IMAGE', {'filePath':imageURI}])
+    },[{
+      chatType:$scope.content.type,
+      target:$scope.content.user,
+      contentType:'IMAGE',
+      content:{'filePath':imageURI}
+    }]);
+    // [$scope.content.type, $scope.content.user, 'IMAGE', {'filePath':imageURI}])
   }
 
   function ImageOnFail(message) {
