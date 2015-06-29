@@ -76,7 +76,7 @@ angular.module('starter.controllers', [])
       chatType:$scope.content.type,
       target:$scope.content.user,
       contentType:'TXT',
-      content:{'text':$scope.content.text}，
+      content:{'text':$scope.content.text},
       extend:{a:1}
     }])
   } 
